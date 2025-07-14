@@ -16,7 +16,7 @@ export const GAME_CONFIG = {
     ZOOM_MIN: 0.5,
     ZOOM_MAX: 0.75,
     ZOOM_SCALE_FACTOR: 0.8, // How much zoom changes with snake size
-    THICKNESS_SCALE_FACTOR: 0.05, // How much thickness increases with length (0.1 = 10% of length)
+    THICKNESS_SCALE_FACTOR: 0.075, // How much thickness increases with length (0.1 = 10% of length)
     VISUAL_LENGTH_FACTOR: 0.4, // How long the snake appears visually (1.0 = 1 segment per length unit)
     FOOD_LENGTH_MIN: 1, // Length increment for small food
     FOOD_LENGTH_MAX: 2, // Length increment for large food
@@ -24,7 +24,8 @@ export const GAME_CONFIG = {
     INTERPOLATION_FACTOR: 0.08, // Reduced from 0.15 for smoother interpolation
     BORDER_WIDTH: 50, // Width of the red kill border
     SNAKE_TURN_RATE: 3.5, // radians per second
-    PLAYER_VIEW_RADIUS: 2000, // Only send entities within this radius of the player's head
+    PLAYER_VIEW_RADIUS: 1000, // Only send entities within this radius of the player's head
+    BOT_COUNT: 10, // Number of AI bots to spawn for testing
 };
 // Socket.IO Event Names
 export const SOCKET_EVENTS = {

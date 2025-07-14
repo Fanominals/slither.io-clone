@@ -15,7 +15,7 @@ export declare const GAME_CONFIG: {
     readonly ZOOM_MIN: 0.5;
     readonly ZOOM_MAX: 0.75;
     readonly ZOOM_SCALE_FACTOR: 0.8;
-    readonly THICKNESS_SCALE_FACTOR: 0.05;
+    readonly THICKNESS_SCALE_FACTOR: 0.075;
     readonly VISUAL_LENGTH_FACTOR: 0.4;
     readonly FOOD_LENGTH_MIN: 1;
     readonly FOOD_LENGTH_MAX: 2;
@@ -23,7 +23,8 @@ export declare const GAME_CONFIG: {
     readonly INTERPOLATION_FACTOR: 0.08;
     readonly BORDER_WIDTH: 50;
     readonly SNAKE_TURN_RATE: 3.5;
-    readonly PLAYER_VIEW_RADIUS: 2000;
+    readonly PLAYER_VIEW_RADIUS: 1000;
+    readonly BOT_COUNT: 10;
 };
 export declare const SOCKET_EVENTS: {
     readonly CONNECTION: "connection";

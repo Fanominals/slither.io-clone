@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
 import { GameState } from './game/GameState';
+import { BotManager } from './game/BotManager';
 import { GAME_CONFIG, SOCKET_EVENTS } from '../common/constants';
 
 const app = express();
@@ -25,6 +26,7 @@ app.get('*', (req, res) => {
 
 // Game state instance
 const gameState = new GameState();
+const botManager = new BotManager(gameState);
 
 // Socket.IO connection handling
 io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
@@ -80,6 +82,7 @@ io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
 setInterval(() => {
     try {
         gameState.update(1 / GAME_CONFIG.TICK_RATE);
+        botManager.update(1 / GAME_CONFIG.TICK_RATE);
 
         // Send per-player visible state
         for (const [id, socket] of io.sockets.sockets) {

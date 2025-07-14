@@ -294,13 +294,33 @@ export class GameState {
         const players: any = {};
         const food: any = {};
 
-        // Include all snakes whose head is within radius of this player's head
+        // Include all snakes if ANY segment is within radius of this player's head
         for (const [id, snake] of this.players) {
             if (!snake.alive) continue;
-            const snakeHead = snake.getHead();
-            const dx = snakeHead.x - head.x;
-            const dy = snakeHead.y - head.y;
-            if (dx * dx + dy * dy <= radius * radius) {
+            const segments = snake.getSegments();
+            // Compute bounding box
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            for (const segment of segments) {
+                if (segment.x < minX) minX = segment.x;
+                if (segment.x > maxX) maxX = segment.x;
+                if (segment.y < minY) minY = segment.y;
+                if (segment.y > maxY) maxY = segment.y;
+            }
+            // Fast bounding box check: if box is outside view radius, skip
+            const dx = Math.max(minX - head.x, 0, head.x - maxX);
+            const dy = Math.max(minY - head.y, 0, head.y - maxY);
+            if (dx * dx + dy * dy > radius * radius) continue;
+            // Now check segments
+            let inView = false;
+            for (const segment of segments) {
+                const dx = segment.x - head.x;
+                const dy = segment.y - head.y;
+                if (dx * dx + dy * dy <= radius * radius) {
+                    inView = true;
+                    break;
+                }
+            }
+            if (inView) {
                 players[id] = snake.getPlayerData();
             }
         }
@@ -346,5 +366,10 @@ export class GameState {
     // Clear events after processing
     clearEvents(): void {
         this.events = [];
+    }
+
+    // Get a player (snake) by ID
+    public getPlayer(id: string) {
+        return this.players.get(id);
     }
 } 

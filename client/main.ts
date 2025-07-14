@@ -205,6 +205,8 @@ class Game {
             this.hideLoadingScreen(); // Make sure loading screen is hidden
             this.socketManager.joinGame(this.currentNickname);
             this.gameRunning = true;
+            this.startTime = Date.now(); // Reset time alive for new round
+            this.eliminations = 0; // Reset eliminations for new round
         } else {
             // If not connected, try to reconnect
             this.showLoadingScreen();
