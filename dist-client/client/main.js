@@ -232,6 +232,8 @@ class Game {
         }
         // Draw UI
         this.renderer.drawUI(this.getLocalPlayer());
+        // Draw minimap (all players, local player highlighted)
+        this.renderer.drawMinimap(this.players, this.localPlayerId);
     }
     handleInput() {
         if (!this.input.isMouseOver())

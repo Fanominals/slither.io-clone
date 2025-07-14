@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../../common/constants.js';
 export class Renderer {
+    // Remove gridPattern and pattern canvas logic. Draw honeycomb directly in drawGrid.
     constructor(canvas, camera) {
         this.gridPattern = null;
         this.canvas = canvas;
@@ -8,38 +9,102 @@ export class Renderer {
         // Set up canvas properties for smooth rendering
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
+        // No gridPattern or createGridPattern
         this.createGridPattern();
     }
-    // Create hexagonal grid pattern
+    // Create a seamless honeycomb pattern tile using the 3D hex style
     createGridPattern() {
+        const size = GAME_CONFIG.GRID_SIZE * 1.15;
+        const hexWidth = size;
+        const hexHeight = size * Math.sqrt(3);
+        const vertSpacing = hexHeight * 0.55;
+        // Pattern canvas: width = hexWidth, height = vertSpacing * 2 (covers two rows for seamless tiling)
         const patternCanvas = document.createElement('canvas');
         const patternCtx = patternCanvas.getContext('2d');
-        // Set pattern size
-        const size = GAME_CONFIG.GRID_SIZE;
-        patternCanvas.width = size;
-        patternCanvas.height = size;
-        // Draw hexagonal grid cell
-        patternCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        patternCtx.lineWidth = 1;
-        patternCtx.beginPath();
-        // Create hexagon
-        const centerX = size / 2;
-        const centerY = size / 2;
-        const radius = size / 3;
-        for (let i = 0; i < 6; i++) {
-            const angle = (i * Math.PI) / 3;
-            const x = centerX + Math.cos(angle) * radius;
-            const y = centerY + Math.sin(angle) * radius;
-            if (i === 0) {
-                patternCtx.moveTo(x, y);
+        patternCanvas.width = hexWidth;
+        patternCanvas.height = vertSpacing * 2;
+        // Draw two rows: even row at y=vertSpacing/2, odd row at y=1.5*vertSpacing (offset by half a hex)
+        for (let row = 0; row < 2; row++) {
+            const y = vertSpacing / 2 + row * vertSpacing;
+            const x = row % 2 === 0 ? hexWidth / 2 : 0;
+            // Even row: center hex
+            if (row % 2 === 0) {
+                this.draw3DHex(patternCtx, this.getHexPoints(hexWidth / 2, y, size), hexWidth / 2, y, true);
             }
             else {
-                patternCtx.lineTo(x, y);
+                // Odd row: left and right hexes
+                this.draw3DHex(patternCtx, this.getHexPoints(0, y, size), 0, y, true);
+                this.draw3DHex(patternCtx, this.getHexPoints(hexWidth, y, size), hexWidth, y, true);
             }
         }
-        patternCtx.closePath();
-        patternCtx.stroke();
         this.gridPattern = patternCanvas;
+    }
+    // Remove createGridPattern and all gridPattern logic
+    // Helper to draw a 3D hexagon with shadow, gradient, and highlight
+    draw3DHex(ctx, points, centerX, centerY, background = false) {
+        const radius = GAME_CONFIG.GRID_SIZE * 1.15 / 2 * 0.97;
+        // Outer shadow
+        ctx.save();
+        ctx.shadowColor = '#000b';
+        ctx.shadowBlur = background ? 6 : 16; // Lower blur for background
+        ctx.beginPath();
+        points.forEach((pt, i) => {
+            if (i === 0)
+                ctx.moveTo(pt.x, pt.y);
+            else
+                ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.closePath();
+        ctx.fillStyle = '#232a33';
+        ctx.fill();
+        ctx.restore();
+        // Gradient fill
+        const grad = ctx.createRadialGradient(centerX, centerY, radius * 0.2, centerX, centerY, radius);
+        grad.addColorStop(0, '#2c3440');
+        grad.addColorStop(0.5, '#232a33');
+        grad.addColorStop(1, '#181c22');
+        ctx.beginPath();
+        points.forEach((pt, i) => {
+            if (i === 0)
+                ctx.moveTo(pt.x, pt.y);
+            else
+                ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.closePath();
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        // Inner highlight (top-left edge)
+        ctx.save();
+        ctx.beginPath();
+        for (let i = 0; i < 4; i++) {
+            const pt = points[i];
+            if (i === 0)
+                ctx.moveTo(pt.x, pt.y);
+            else
+                ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(120,180,255,0.18)';
+        ctx.shadowColor = '#8fd6ff';
+        ctx.shadowBlur = background ? 2 : 8;
+        ctx.stroke();
+        ctx.restore();
+        // Hex border
+        ctx.beginPath();
+        points.forEach((pt, i) => {
+            if (i === 0)
+                ctx.moveTo(pt.x, pt.y);
+            else
+                ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.closePath();
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#22282f';
+        ctx.globalAlpha = 0.7;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
     }
     // Clear the canvas
     clear() {
@@ -54,24 +119,50 @@ export class Renderer {
     resetTransform() {
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
-    // Draw hexagonal grid background
+    // Draw hexagonal honeycomb grid background using the pattern
     drawGrid() {
-        if (!this.gridPattern)
-            return;
         this.applyCameraTransform();
+        const gridSize = GAME_CONFIG.GRID_SIZE * 1.15;
+        const hexWidth = gridSize;
+        const hexHeight = gridSize * Math.sqrt(3);
+        const vertSpacing = hexHeight * 0.55;
         const bounds = this.camera.getVisibleBounds();
-        const gridSize = GAME_CONFIG.GRID_SIZE;
         // Calculate grid bounds
-        const startX = Math.floor(bounds.left / gridSize) * gridSize;
-        const startY = Math.floor(bounds.top / gridSize) * gridSize;
-        const endX = Math.ceil(bounds.right / gridSize) * gridSize;
-        const endY = Math.ceil(bounds.bottom / gridSize) * gridSize;
-        // Create pattern
-        const pattern = this.ctx.createPattern(this.gridPattern, 'repeat');
-        if (pattern) {
-            this.ctx.fillStyle = pattern;
-            this.ctx.fillRect(startX, startY, endX - startX, endY - startY);
+        const startX = Math.floor(bounds.left / hexWidth) * hexWidth;
+        const startY = Math.floor(bounds.top / vertSpacing) * vertSpacing;
+        const endX = Math.ceil(bounds.right / hexWidth) * hexWidth;
+        const endY = Math.ceil(bounds.bottom / vertSpacing) * vertSpacing;
+        // Optional: background gradient
+        this.resetTransform();
+        const grad = this.ctx.createRadialGradient(this.canvas.width / 2, this.canvas.height / 2, this.canvas.width * 0.15, this.canvas.width / 2, this.canvas.height / 2, this.canvas.width * 0.7);
+        grad.addColorStop(0, '#232a33');
+        grad.addColorStop(1, '#10141a');
+        this.ctx.fillStyle = grad;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.applyCameraTransform();
+        // Draw the pattern
+        if (this.gridPattern) {
+            const pattern = this.ctx.createPattern(this.gridPattern, 'repeat');
+            if (pattern) {
+                this.ctx.globalAlpha = 0.92;
+                this.ctx.fillStyle = pattern;
+                this.ctx.fillRect(startX, startY, endX - startX, endY - startY);
+                this.ctx.globalAlpha = 1;
+            }
         }
+    }
+    // Helper to get hex points for a given center and size
+    getHexPoints(cx, cy, size) {
+        const radius = size / 2 * 0.97;
+        const pts = [];
+        for (let i = 0; i < 6; i++) {
+            const angle = Math.PI / 2 + i * Math.PI / 3;
+            pts.push({
+                x: cx + Math.cos(angle) * radius,
+                y: cy + Math.sin(angle) * radius
+            });
+        }
+        return pts;
     }
     // Draw world boundaries
     drawWorldBoundaries() {
@@ -223,6 +314,41 @@ export class Renderer {
         this.ctx.textBaseline = 'middle';
         this.ctx.fillStyle = 'white';
         this.ctx.fillText('Connecting...', this.canvas.width / 2, this.canvas.height / 2);
+    }
+    // Draw minimap in the bottom right
+    drawMinimap(players, localPlayerId) {
+        const minimap = document.getElementById('minimap');
+        if (!minimap)
+            return;
+        const ctx = minimap.getContext('2d');
+        const w = minimap.width;
+        const h = minimap.height;
+        ctx.clearRect(0, 0, w, h);
+        // Draw background
+        ctx.fillStyle = 'rgba(20,20,30,0.82)';
+        ctx.fillRect(0, 0, w, h);
+        // Draw world border (subtle gray or white, not red)
+        const border = 2;
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(border, border, w - 2 * border, h - 2 * border);
+        // World to minimap scale
+        const scaleX = (w - 2 * border) / GAME_CONFIG.WORLD_WIDTH;
+        const scaleY = (h - 2 * border) / GAME_CONFIG.WORLD_HEIGHT;
+        // Draw all players as red dots
+        for (const [id, player] of players) {
+            if (!player.alive)
+                continue;
+            const x = border + player.x * scaleX;
+            const y = border + player.y * scaleY;
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = (id === localPlayerId) ? '#4ecdc4' : '#ff3b3b';
+            ctx.shadowColor = (id === localPlayerId) ? '#4ecdc4' : '#ff3b3b';
+            ctx.shadowBlur = (id === localPlayerId) ? 8 : 4;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
     }
     // Resize canvas
     resize(width, height) {

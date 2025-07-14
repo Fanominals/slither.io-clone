@@ -2,15 +2,15 @@
 export const GAME_CONFIG = {
     WORLD_WIDTH: 4000,
     WORLD_HEIGHT: 4000,
-    INITIAL_SNAKE_LENGTH: 3,
-    INITIAL_SNAKE_THICKNESS: 30,
+    INITIAL_SNAKE_LENGTH: 10,
+    INITIAL_SNAKE_THICKNESS: 40,
     SNAKE_SPEED: 200, // pixels per second
     SNAKE_BOOST_SPEED: 350, // boost speed in pixels per second
     FOOD_SIZE: 8,
     FOOD_ATTRACTION_RADIUS: 50, // Radius where food starts gravitating towards snake head  
     FOOD_CONSUMPTION_DISTANCE: 8, // Distance at which food gets consumed (much smaller)
     FOOD_COUNT: 800,
-    GRID_SIZE: 40,
+    GRID_SIZE: 80,
     TICK_RATE: 60, // server updates per second (increased from 30 to 60)
     CAMERA_SMOOTH_FACTOR: 0.25, // Increased from 0.15 for more responsive camera
     ZOOM_MIN: 0.65,

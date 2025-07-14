@@ -1,15 +1,15 @@
 export declare const GAME_CONFIG: {
     readonly WORLD_WIDTH: 4000;
     readonly WORLD_HEIGHT: 4000;
-    readonly INITIAL_SNAKE_LENGTH: 3;
-    readonly INITIAL_SNAKE_THICKNESS: 30;
+    readonly INITIAL_SNAKE_LENGTH: 10;
+    readonly INITIAL_SNAKE_THICKNESS: 40;
     readonly SNAKE_SPEED: 200;
     readonly SNAKE_BOOST_SPEED: 350;
     readonly FOOD_SIZE: 8;
     readonly FOOD_ATTRACTION_RADIUS: 50;
     readonly FOOD_CONSUMPTION_DISTANCE: 8;
     readonly FOOD_COUNT: 800;
-    readonly GRID_SIZE: 40;
+    readonly GRID_SIZE: 80;
     readonly TICK_RATE: 60;
     readonly CAMERA_SMOOTH_FACTOR: 0.25;
     readonly ZOOM_MIN: 0.65;

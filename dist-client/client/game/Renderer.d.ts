@@ -8,10 +8,12 @@ export declare class Renderer {
     private gridPattern;
     constructor(canvas: HTMLCanvasElement, camera: Camera);
     private createGridPattern;
+    private draw3DHex;
     clear(): void;
     private applyCameraTransform;
     private resetTransform;
     drawGrid(): void;
+    private getHexPoints;
     drawWorldBoundaries(): void;
     drawSnake(snake: ClientSnake): void;
     private drawSnakeEyes;
@@ -19,5 +21,6 @@ export declare class Renderer {
     drawFood(food: ClientFood): void;
     drawUI(localPlayer: ClientSnake | null): void;
     drawLoading(): void;
+    drawMinimap(players: Map<string, any>, localPlayerId: string | null): void;
     resize(width: number, height: number): void;
 }

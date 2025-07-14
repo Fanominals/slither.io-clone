@@ -278,27 +278,24 @@ class Game {
 
     private render(): void {
         this.renderer.clear();
-        
         // Draw grid background
         this.renderer.drawGrid();
-        
         // Draw world boundaries
         this.renderer.drawWorldBoundaries();
-        
         // Draw food (only visible ones for performance)
         const visibleFood = this.getVisibleFood();
         for (const foodItem of visibleFood) {
             this.renderer.drawFood(foodItem);
         }
-        
         // Draw snakes (only visible ones for performance)
         const visibleSnakes = this.getVisibleSnakes();
         for (const snake of visibleSnakes) {
             this.renderer.drawSnake(snake);
         }
-        
         // Draw UI
         this.renderer.drawUI(this.getLocalPlayer());
+        // Draw minimap (all players, local player highlighted)
+        this.renderer.drawMinimap(this.players, this.localPlayerId);
     }
 
     private handleInput(): void {
