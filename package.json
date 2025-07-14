@@ -1,0 +1,37 @@
+{
+  "name": "slither-io-clone",
+  "version": "1.0.0",
+  "description": "A production-ready Slither.io clone with real-time multiplayer",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "nodemon server/index.ts",
+    "client:dev": "nodemon --exec \"npm run build:client\" --watch client --ext ts,html,css",
+    "build": "npm run build:server && npm run build:client",
+    "start": "node dist/server/index.js",
+    "build:client": "tsc -p tsconfig.client.json && cp client/*.html client/*.css dist/client/",
+    "build:server": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "slither",
+    "io",
+    "game",
+    "multiplayer",
+    "socket.io"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.5.0",
+    "concurrently": "^8.2.0",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}

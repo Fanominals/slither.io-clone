@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slither.io Clone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Menu Screen -->
+    <div id="menu" class="screen">
+        <div class="menu-container">
+            <h1 class="game-title">slither.io</h1>
+            <p class="game-subtitle">Don't run into other players!</p>
+            
+            <div class="input-container">
+                <input type="text" id="nickname" placeholder="Nickname" maxlength="20" autocomplete="off">
+                <button id="playButton" class="play-button">Play</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Screen -->
+    <div id="game" class="screen hidden">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Game UI -->
+        <div class="game-ui">
+            <div class="score-display">
+                <div id="scoreText">Score: 0</div>
+                <div id="lengthText">Length: 3</div>
+            </div>
+            
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-indicator"></div>
+                <span>Connected</span>
+            </div>
+        </div>
+        
+        <!-- Death Screen -->
+        <div id="deathScreen" class="death-screen hidden">
+            <div class="death-content">
+                <h2>You died!</h2>
+                <div class="death-stats">
+                    <div>Final Score: <span id="finalScore">0</span></div>
+                    <div>Length Reached: <span id="finalLength">0</span></div>
+                </div>
+                <button id="respawnButton" class="respawn-button">Play Again</button>
+            </div>
+        </div>
+        
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="loading-screen hidden">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <div>Connecting...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Error Screen -->
+    <div id="errorScreen" class="screen hidden">
+        <div class="error-container">
+            <h2>Connection Error</h2>
+            <p id="errorMessage">Unable to connect to server</p>
+            <button id="retryButton" class="retry-button">Retry</button>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module">
+        // Make socket.io available globally for ES6 modules
+        window.io = io;
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html> 
