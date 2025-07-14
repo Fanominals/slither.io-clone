@@ -9,7 +9,7 @@
     "client:dev": "nodemon --exec \"npm run build:client\" --watch client --ext ts,html,css",
     "build": "npm run build:server && npm run build:client",
     "start": "node dist/server/index.js",
-    "build:client": "tsc -p tsconfig.client.json && cp client/*.html client/*.css dist/client/",
+    "build:client": "tsc -p tsconfig.client.json && cp client/*.html client/*.css dist-client/",
     "build:server": "tsc -p tsconfig.json"
   },
   "keywords": [

@@ -15,7 +15,7 @@ const io = new Server(server, {
 });
 
 // Serve static files from dist directory
-app.use(express.static(path.join(__dirname, '../dist/client')));
+app.use(express.static(path.join(__dirname, '../dist-client')));
 app.use('/common', express.static(path.join(__dirname, '../dist/common')));
 
 // Game state instance
