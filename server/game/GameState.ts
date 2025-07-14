@@ -165,22 +165,18 @@ export class GameState {
             
             // Food attraction - move food towards snake head within attraction radius
             if (distance <= GAME_CONFIG.FOOD_ATTRACTION_RADIUS && distance > GAME_CONFIG.FOOD_CONSUMPTION_DISTANCE) {
-                console.log(`Food attraction - Distance: ${distance.toFixed(1)}, Head: (${head.x.toFixed(1)}, ${head.y.toFixed(1)}), Food: (${food.x.toFixed(1)}, ${food.y.toFixed(1)})`);
-                
                 const dx = head.x - food.x;
                 const dy = head.y - food.y;
                 const length = Math.sqrt(dx * dx + dy * dy);
                 
                 if (length > 0) {
                     // Simple smooth movement towards snake head
-                    const moveSpeed = 8; // Increased from 4 to make it more visible
+                    const moveSpeed = 8; // pixels per update - smooth but visible
                     const moveX = (dx / length) * moveSpeed;
                     const moveY = (dy / length) * moveSpeed;
                     
                     food.x += moveX;
                     food.y += moveY;
-                    
-                    console.log(`Moving food by: (${moveX.toFixed(1)}, ${moveY.toFixed(1)}) to (${food.x.toFixed(1)}, ${food.y.toFixed(1)})`);
                 }
             }
             

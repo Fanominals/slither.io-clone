@@ -22,6 +22,7 @@ export class Snake {
     public mass: number;
     public hasStartedMoving: boolean = false;
     public isBoosting: boolean = false;
+    public boostTimer: number = 0; // Tracks time spent boosting
 
     constructor(
         id: string,
@@ -90,6 +91,19 @@ export class Snake {
 
             // Update segments to follow head
             this.updateSegments();
+        }
+
+        // --- Boosting length reduction logic ---
+        if (this.isBoosting && this.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
+            this.boostTimer += deltaTime;
+            if (this.boostTimer >= 1) {
+                this.length = Math.max(this.length - 1, GAME_CONFIG.INITIAL_SNAKE_LENGTH);
+                this.mass = Math.max(this.mass - GAME_CONFIG.MASS_PER_SEGMENT, GAME_CONFIG.INITIAL_SNAKE_LENGTH);
+                this.segments.pop(); // Remove last segment
+                this.boostTimer = 0;
+            }
+        } else {
+            this.boostTimer = 0;
         }
     }
 

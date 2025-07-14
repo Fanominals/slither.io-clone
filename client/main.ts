@@ -35,6 +35,7 @@ class Game {
     private connectionStatus!: HTMLElement;
     private finalScore!: HTMLElement;
     private finalLength!: HTMLElement;
+    private leaderboardList!: HTMLElement;
     
     // Game state
     private currentNickname: string = '';
@@ -66,6 +67,7 @@ class Game {
         this.connectionStatus = document.getElementById('connectionStatus')!;
         this.finalScore = document.getElementById('finalScore')!;
         this.finalLength = document.getElementById('finalLength')!;
+        this.leaderboardList = document.getElementById('leaderboardList')!;
     }
 
     private initializeCanvas(): void {
@@ -337,6 +339,7 @@ class Game {
                 }
             }
         }
+        this.updateLeaderboard();
     }
 
     private handlePlayerJoined(data: any): void {
@@ -400,6 +403,39 @@ class Game {
             this.scoreText.textContent = `Score: ${localPlayer.score}`;
             this.lengthText.textContent = `Length: ${localPlayer.getCurrentLength()}`;
         }
+    }
+
+    private updateLeaderboard(): void {
+        // Gather all players as array
+        const playersArr = Array.from(this.players.values());
+        // Sort by length descending
+        playersArr.sort((a, b) => b.length - a.length);
+        // Take top 5
+        const topPlayers = playersArr.slice(0, 5);
+        // Get local player id
+        const localId = this.localPlayerId;
+        // Medal emojis
+        const medals = ['🥇', '🥈', '🥉'];
+        // Clear leaderboard
+        this.leaderboardList.innerHTML = '';
+        // Render each player
+        topPlayers.forEach((player, i) => {
+            const li = document.createElement('li');
+            // Medal or rank
+            let medalSpan = '';
+            let rankClass = '';
+            if (i < 3) {
+                medalSpan = `<span class="medal">${medals[i]}</span>`;
+                rankClass = ['gold','silver','bronze'][i];
+            } else {
+                medalSpan = `<span class="rank">${i+1}</span>`;
+            }
+            // Highlight user
+            if (player.id === localId) li.classList.add('user');
+            if (rankClass) li.classList.add(rankClass);
+            li.innerHTML = `${medalSpan}<span class="nickname">${player.nickname}</span><span class="length">${player.length}</span>`;
+            this.leaderboardList.appendChild(li);
+        });
     }
 
     private showMenuScreen(): void {

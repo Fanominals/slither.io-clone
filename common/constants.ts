@@ -3,7 +3,7 @@ export const GAME_CONFIG = {
     WORLD_WIDTH: 4000,
     WORLD_HEIGHT: 4000,
     INITIAL_SNAKE_LENGTH: 3,
-    INITIAL_SNAKE_THICKNESS: 20,
+    INITIAL_SNAKE_THICKNESS: 30,
     SNAKE_SPEED: 200, // pixels per second
     SNAKE_BOOST_SPEED: 350, // boost speed in pixels per second
     FOOD_SIZE: 8,
