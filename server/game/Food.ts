@@ -6,7 +6,7 @@ export class Food {
     public y: number;
     public color: string;
     public size: number;
-    public mass: number;
+    public lengthIncrement: number;
 
     constructor(
         id: string,
@@ -14,14 +14,14 @@ export class Food {
         y: number,
         color: string,
         size: number,
-        mass: number
+        lengthIncrement: number
     ) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.color = color;
         this.size = size;
-        this.mass = mass;
+        this.lengthIncrement = lengthIncrement;
     }
 
     // Get food data for network transmission
@@ -32,7 +32,7 @@ export class Food {
             y: this.y,
             color: this.color,
             size: this.size,
-            mass: this.mass
+            lengthIncrement: this.lengthIncrement
         };
     }
 } 

@@ -14,7 +14,6 @@ class Game {
         this.gameRunning = false;
         this.lastUpdateTime = 0;
         // Death screen data
-        this.finalScoreValue = 0;
         this.finalLengthValue = 0;
         this.startTime = 0;
         this.endTime = 0;
@@ -44,10 +43,8 @@ class Game {
         this.playButton = document.getElementById('playButton');
         this.respawnButton = document.getElementById('respawnButton');
         this.retryButton = document.getElementById('retryButton');
-        this.scoreText = document.getElementById('scoreText');
         this.lengthText = document.getElementById('lengthText');
         this.connectionStatus = document.getElementById('connectionStatus');
-        this.finalScore = document.getElementById('finalScore');
         this.finalLength = document.getElementById('finalLength');
         this.leaderboardList = document.getElementById('leaderboardList');
         this.fpsCounter = document.getElementById('fpsCounter');
@@ -315,8 +312,7 @@ class Game {
     }
     handleSnakeDied(data) {
         if (data.playerId === this.localPlayerId) {
-            // Use the final score and length from the death event data
-            this.finalScoreValue = data.finalScore || 0;
+            // Use the final length from the death event data (already rounded from server)
             this.finalLengthValue = data.finalLength || 0;
             this.endTime = Date.now();
             this.showDeathScreen();
@@ -351,7 +347,6 @@ class Game {
     updateUI() {
         const localPlayer = this.getLocalPlayer();
         if (localPlayer) {
-            this.scoreText.textContent = `Score: ${localPlayer.score}`;
             this.lengthText.textContent = `Length: ${localPlayer.getCurrentLength()}`;
         }
     }
@@ -411,7 +406,7 @@ class Game {
         document.getElementById('finalTime').textContent = timeString;
         // Eliminations
         document.getElementById('finalEliminations').textContent = this.eliminations.toString();
-        // Length
+        // Length (already rounded in handleSnakeDied)
         document.getElementById('finalLength').textContent = this.finalLengthValue.toString();
         this.deathScreen.classList.remove('hidden');
         this.hideLoadingScreen(); // Ensure loading screen is hidden

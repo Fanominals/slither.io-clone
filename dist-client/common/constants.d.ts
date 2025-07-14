@@ -12,14 +12,13 @@ export declare const GAME_CONFIG: {
     readonly GRID_SIZE: 80;
     readonly TICK_RATE: 60;
     readonly CAMERA_SMOOTH_FACTOR: 0.25;
-    readonly ZOOM_MIN: 0.65;
-    readonly ZOOM_MAX: 1.2;
+    readonly ZOOM_MIN: 0.5;
+    readonly ZOOM_MAX: 0.75;
     readonly ZOOM_SCALE_FACTOR: 0.8;
-    readonly THICKNESS_SCALE_FACTOR: 0.15;
-    readonly SEGMENT_SPACING: 12;
-    readonly FOOD_MASS_MIN: 1;
-    readonly FOOD_MASS_MAX: 2;
-    readonly MASS_PER_SEGMENT: 3;
+    readonly THICKNESS_SCALE_FACTOR: 0.05;
+    readonly VISUAL_LENGTH_FACTOR: 0.4;
+    readonly FOOD_LENGTH_MIN: 1;
+    readonly FOOD_LENGTH_MAX: 2;
     readonly DEATH_FOOD_MULTIPLIER: 0.7;
     readonly INTERPOLATION_FACTOR: 0.08;
     readonly BORDER_WIDTH: 50;
@@ -65,7 +64,6 @@ export interface PlayerData {
     thickness: number;
     segments: SnakeSegment[];
     alive: boolean;
-    score: number;
 }
 export interface FoodData {
     id: string;
@@ -73,7 +71,7 @@ export interface FoodData {
     y: number;
     color: string;
     size: number;
-    mass: number;
+    lengthIncrement: number;
 }
 export interface GameState {
     players: Map<string, PlayerData>;

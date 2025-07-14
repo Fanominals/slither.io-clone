@@ -5,7 +5,7 @@ export declare class ClientFood {
     y: number;
     color: string;
     size: number;
-    mass: number;
+    lengthIncrement: number;
     pulseAnimation: number;
     glowIntensity: number;
     constructor(foodData: FoodData);
@@ -15,7 +15,7 @@ export declare class ClientFood {
     getPosition(): Vector2D;
     isVisible(cameraX: number, cameraY: number, cameraZoom: number, screenWidth: number, screenHeight: number): boolean;
     getRenderColor(): string;
-    getMass(): number;
+    getLengthIncrement(): number;
     getDistanceTo(point: Vector2D): number;
     contains(point: Vector2D): boolean;
     getBoundingBox(): {

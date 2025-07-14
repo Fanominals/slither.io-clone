@@ -13,14 +13,13 @@ export const GAME_CONFIG = {
     GRID_SIZE: 80,
     TICK_RATE: 60, // server updates per second (increased from 30 to 60)
     CAMERA_SMOOTH_FACTOR: 0.25, // Increased from 0.15 for more responsive camera
-    ZOOM_MIN: 0.65,
-    ZOOM_MAX: 1.2,
+    ZOOM_MIN: 0.5,
+    ZOOM_MAX: 0.75,
     ZOOM_SCALE_FACTOR: 0.8, // How much zoom changes with snake size
-    THICKNESS_SCALE_FACTOR: 0.15, // How much thickness increases with length
-    SEGMENT_SPACING: 12,
-    FOOD_MASS_MIN: 1,
-    FOOD_MASS_MAX: 2,
-    MASS_PER_SEGMENT: 3, // How much mass is needed to grow one segment
+    THICKNESS_SCALE_FACTOR: 0.05, // How much thickness increases with length (0.1 = 10% of length)
+    VISUAL_LENGTH_FACTOR: 0.4, // How long the snake appears visually (1.0 = 1 segment per length unit)
+    FOOD_LENGTH_MIN: 1, // Length increment for small food
+    FOOD_LENGTH_MAX: 2, // Length increment for large food
     DEATH_FOOD_MULTIPLIER: 0.7, // How much food is dropped when snake dies
     INTERPOLATION_FACTOR: 0.08, // Reduced from 0.15 for smoother interpolation
     BORDER_WIDTH: 50, // Width of the red kill border

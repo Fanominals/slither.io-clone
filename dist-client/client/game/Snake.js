@@ -14,7 +14,6 @@ export class ClientSnake {
         this.thickness = playerData.thickness;
         this.segments = [...playerData.segments];
         this.alive = playerData.alive;
-        this.score = playerData.score;
         this.isLocalPlayer = isLocalPlayer;
         // Initialize interpolation
         this.previousX = this.x;
@@ -43,7 +42,6 @@ export class ClientSnake {
         this.thickness = playerData.thickness;
         this.segments = [...playerData.segments];
         this.alive = playerData.alive;
-        this.score = playerData.score;
         this.nickname = playerData.nickname;
         this.color = playerData.color;
         // Reset interpolation
@@ -172,15 +170,15 @@ export class ClientSnake {
     }
     // Get snake's current length including growth
     getCurrentLength() {
-        return this.segments.length;
+        return this.length;
     }
-    // Get display name with score
+    // Get display name with length
     getDisplayName() {
-        return `${this.nickname} (${this.score})`;
+        return `${this.nickname} (${this.length})`;
     }
-    // Calculate snake's total mass
-    getTotalMass() {
-        return this.length + (this.score - this.length);
+    // Get snake's total length
+    getTotalLength() {
+        return this.length;
     }
 }
 //# sourceMappingURL=Snake.js.map

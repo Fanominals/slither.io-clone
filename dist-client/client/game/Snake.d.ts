@@ -10,7 +10,6 @@ export declare class ClientSnake {
     thickness: number;
     segments: SnakeSegment[];
     alive: boolean;
-    score: number;
     isLocalPlayer: boolean;
     private previousX;
     private previousY;
@@ -30,5 +29,5 @@ export declare class ClientSnake {
     isVisible(cameraX: number, cameraY: number, cameraZoom: number, screenWidth: number, screenHeight: number): boolean;
     getCurrentLength(): number;
     getDisplayName(): string;
-    getTotalMass(): number;
+    getTotalLength(): number;
 }

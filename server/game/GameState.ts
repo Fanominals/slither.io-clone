@@ -41,7 +41,7 @@ export class GameState {
             Math.random() * GAME_CONFIG.WORLD_HEIGHT,
             generateRandomColor(),
             GAME_CONFIG.FOOD_SIZE,
-            GAME_CONFIG.FOOD_MASS_MIN + Math.random() * (GAME_CONFIG.FOOD_MASS_MAX - GAME_CONFIG.FOOD_MASS_MIN)
+            GAME_CONFIG.FOOD_LENGTH_MIN + Math.random() * (GAME_CONFIG.FOOD_LENGTH_MAX - GAME_CONFIG.FOOD_LENGTH_MIN)
         );
         this.food.set(food.id, food);
     }
@@ -124,7 +124,7 @@ export class GameState {
                 segment.y + (Math.random() - 0.5) * 50,
                 generateRandomColor(),
                 GAME_CONFIG.FOOD_SIZE + Math.random() * 4,
-                GAME_CONFIG.FOOD_MASS_MIN + Math.random() * (GAME_CONFIG.FOOD_MASS_MAX - GAME_CONFIG.FOOD_MASS_MIN)
+                GAME_CONFIG.FOOD_LENGTH_MIN + Math.random() * (GAME_CONFIG.FOOD_LENGTH_MAX - GAME_CONFIG.FOOD_LENGTH_MIN)
             );
             this.food.set(food.id, food);
         }
@@ -182,7 +182,7 @@ export class GameState {
             
             // Food consumption
             if (distance <= GAME_CONFIG.FOOD_CONSUMPTION_DISTANCE) {
-                snake.grow(food.mass);
+                snake.grow(food.lengthIncrement);
                 foodToRemove.push(food.id);
                 
                 this.events.push({
@@ -190,7 +190,7 @@ export class GameState {
                     data: {
                         playerId: snake.id,
                         foodId: food.id,
-                        mass: food.mass
+                        lengthIncrement: food.lengthIncrement
                     }
                 });
             }
@@ -208,9 +208,8 @@ export class GameState {
             if (otherSnake.id !== snake.id && otherSnake.alive) {
                 // Check collision with other snake's body
                 if (this.collision.checkSnakeCollision(head, otherSnake.getSegments())) {
-                    // Capture final score and length before death
-                    const finalScore = snake.score;
-                    const finalLength = snake.length;
+                    // Capture final length before death (use rounded value)
+                    const finalLength = Math.floor(snake.length);
                     
                     snake.die();
                     this.createFoodFromSnake(snake);
@@ -220,7 +219,6 @@ export class GameState {
                         data: {
                             playerId: snake.id,
                             killer: otherSnake.id,
-                            finalScore: finalScore,
                             finalLength: finalLength
                         }
                     });
@@ -240,9 +238,8 @@ export class GameState {
             
             console.log(`Snake ${snake.nickname} hit kill border! Head position: (${head.x}, ${head.y}), World: ${GAME_CONFIG.WORLD_WIDTH}x${GAME_CONFIG.WORLD_HEIGHT}`);
             
-            // Capture final score and length before death
-            const finalScore = snake.score;
-            const finalLength = snake.length;
+            // Capture final length before death (use rounded value)
+            const finalLength = Math.floor(snake.length);
             
             snake.die();
             this.createFoodFromSnake(snake);
@@ -252,7 +249,6 @@ export class GameState {
                 data: {
                     playerId: snake.id,
                     killer: null,
-                    finalScore: finalScore,
                     finalLength: finalLength
                 }
             });

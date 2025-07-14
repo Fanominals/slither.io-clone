@@ -18,8 +18,6 @@ export class Snake {
     public thickness: number;
     public segments: SnakeSegment[];
     public alive: boolean;
-    public score: number;
-    public mass: number;
     public hasStartedMoving: boolean = false;
     public isBoosting: boolean = false;
     public boostTimer: number = 0; // Tracks time spent boosting
@@ -44,8 +42,6 @@ export class Snake {
         this.thickness = initialThickness;
         this.segments = [];
         this.alive = true;
-        this.score = 0;
-        this.mass = initialLength;
 
         this.initializeSegments();
     }
@@ -53,10 +49,11 @@ export class Snake {
     // Initialize segments based on initial length
     private initializeSegments(): void {
         this.segments = [];
-        for (let i = 0; i < this.length; i++) {
+        const visualLength = Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR);
+        for (let i = 0; i < visualLength; i++) {
             const segmentRadius = this.calculateSegmentRadius(i);
             this.segments.push({
-                x: this.x - i * GAME_CONFIG.SEGMENT_SPACING,
+                x: this.x - i * 12, // Fixed spacing of 12 pixels
                 y: this.y,
                 radius: segmentRadius
             });
@@ -75,12 +72,9 @@ export class Snake {
     update(deltaTime: number): void {
         if (!this.alive) return;
 
-        // Update thickness based on mass
+        // Update thickness based on actual length (not growth)
         this.thickness = GAME_CONFIG.INITIAL_SNAKE_THICKNESS + 
-                        (this.mass - GAME_CONFIG.INITIAL_SNAKE_LENGTH) * GAME_CONFIG.THICKNESS_SCALE_FACTOR;
-        
-        // Update score
-        this.score = Math.floor(this.mass);
+                        (this.length * GAME_CONFIG.THICKNESS_SCALE_FACTOR);
 
         // Only move if the snake has started moving (user has provided input)
         if (this.hasStartedMoving) {
@@ -98,9 +92,15 @@ export class Snake {
         if (this.isBoosting && this.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
             this.boostTimer += deltaTime;
             if (this.boostTimer >= 1) {
-                this.length = Math.max(this.length - 1, GAME_CONFIG.INITIAL_SNAKE_LENGTH);
-                this.mass = Math.max(this.mass - GAME_CONFIG.MASS_PER_SEGMENT, GAME_CONFIG.INITIAL_SNAKE_LENGTH);
-                this.segments.pop(); // Remove last segment
+                // Reduce score length by 2 per second
+                this.length = Math.max(this.length - 2, GAME_CONFIG.INITIAL_SNAKE_LENGTH);
+                
+                // Calculate target visual length and remove excess segments
+                const targetVisualLength = Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR);
+                while (this.segments.length > targetVisualLength && this.segments.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
+                    this.segments.pop();
+                }
+                
                 this.boostTimer = 0;
             }
         } else {
@@ -128,8 +128,8 @@ export class Snake {
             const distance = Math.sqrt(dx * dx + dy * dy);
             
             // Move towards target if too far
-            if (distance > GAME_CONFIG.SEGMENT_SPACING) {
-                const moveRatio = (distance - GAME_CONFIG.SEGMENT_SPACING) / distance;
+            if (distance > 12) { // Fixed spacing of 12 pixels
+                const moveRatio = (distance - 12) / distance;
                 current.x += dx * moveRatio;
                 current.y += dy * moveRatio;
             }
@@ -157,14 +157,16 @@ export class Snake {
         this.isBoosting = boosting;
     }
 
-    // Grow the snake by adding mass
-    grow(mass: number): void {
-        this.mass += mass;
-        const newLength = GAME_CONFIG.INITIAL_SNAKE_LENGTH + 
-                         Math.floor((this.mass - GAME_CONFIG.INITIAL_SNAKE_LENGTH) / GAME_CONFIG.MASS_PER_SEGMENT);
+    // Grow the snake by adding length
+    grow(lengthIncrement: number): void {
+        // Add to the score length (for leaderboard)
+        this.length += lengthIncrement;
         
-        // Add new segments if length increased
-        while (this.segments.length < newLength) {
+        // Calculate how many visual segments we should have now
+        const targetVisualLength = Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR);
+        
+        // Add new segments if needed
+        while (this.segments.length < targetVisualLength) {
             const lastSegment = this.segments[this.segments.length - 1];
             const newSegment: SnakeSegment = {
                 x: lastSegment.x,
@@ -173,8 +175,6 @@ export class Snake {
             };
             this.segments.push(newSegment);
         }
-        
-        this.length = newLength;
     }
 
     // Kill the snake
@@ -215,11 +215,10 @@ export class Snake {
             x: this.x,
             y: this.y,
             angle: this.angle,
-            length: this.length,
+            length: Math.floor(this.length),
             thickness: this.thickness,
             segments: this.segments,
-            alive: this.alive,
-            score: this.score
+            alive: this.alive
         };
     }
 } 

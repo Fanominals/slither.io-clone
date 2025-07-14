@@ -7,7 +7,7 @@ export class ClientFood {
         this.y = foodData.y;
         this.color = foodData.color;
         this.size = foodData.size;
-        this.mass = foodData.mass;
+        this.lengthIncrement = foodData.lengthIncrement;
     }
     // Update food with server data
     updateFromServer(foodData) {
@@ -15,7 +15,7 @@ export class ClientFood {
         this.y = foodData.y;
         this.color = foodData.color;
         this.size = foodData.size;
-        this.mass = foodData.mass;
+        this.lengthIncrement = foodData.lengthIncrement;
     }
     // Update animation
     update(deltaTime) {
@@ -64,9 +64,9 @@ export class ClientFood {
         const b = parseInt(hex.substr(4, 2), 16);
         return `rgba(${r}, ${g}, ${b}, ${this.glowIntensity})`;
     }
-    // Get the food's mass value
-    getMass() {
-        return this.mass;
+    // Get the food's length increment value
+    getLengthIncrement() {
+        return this.lengthIncrement;
     }
     // Get distance to a point
     getDistanceTo(point) {

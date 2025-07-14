@@ -6,7 +6,7 @@ export class ClientFood {
     public y: number;
     public color: string;
     public size: number;
-    public mass: number;
+    public lengthIncrement: number;
     public pulseAnimation: number = 0;
     public glowIntensity: number = 0.5;
 
@@ -16,7 +16,7 @@ export class ClientFood {
         this.y = foodData.y;
         this.color = foodData.color;
         this.size = foodData.size;
-        this.mass = foodData.mass;
+        this.lengthIncrement = foodData.lengthIncrement;
     }
 
     // Update food with server data
@@ -25,7 +25,7 @@ export class ClientFood {
         this.y = foodData.y;
         this.color = foodData.color;
         this.size = foodData.size;
-        this.mass = foodData.mass;
+        this.lengthIncrement = foodData.lengthIncrement;
     }
 
     // Update animation
@@ -87,9 +87,9 @@ export class ClientFood {
         return `rgba(${r}, ${g}, ${b}, ${this.glowIntensity})`;
     }
 
-    // Get the food's mass value
-    getMass(): number {
-        return this.mass;
+    // Get the food's length increment value
+    getLengthIncrement(): number {
+        return this.lengthIncrement;
     }
 
     // Get distance to a point

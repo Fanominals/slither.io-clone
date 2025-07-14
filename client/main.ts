@@ -22,7 +22,6 @@ class Game {
     private lastUpdateTime: number = 0;
     
     // Death screen data
-    private finalScoreValue: number = 0;
     private finalLengthValue: number = 0;
     private startTime: number = 0;
     private endTime: number = 0;
@@ -38,10 +37,8 @@ class Game {
     private playButton!: HTMLButtonElement;
     private respawnButton!: HTMLButtonElement;
     private retryButton!: HTMLButtonElement;
-    private scoreText!: HTMLElement;
     private lengthText!: HTMLElement;
     private connectionStatus!: HTMLElement;
-    private finalScore!: HTMLElement;
     private finalLength!: HTMLElement;
     private leaderboardList!: HTMLElement;
     private fpsCounter!: HTMLElement;
@@ -74,10 +71,8 @@ class Game {
         this.playButton = document.getElementById('playButton') as HTMLButtonElement;
         this.respawnButton = document.getElementById('respawnButton') as HTMLButtonElement;
         this.retryButton = document.getElementById('retryButton') as HTMLButtonElement;
-        this.scoreText = document.getElementById('scoreText')!;
         this.lengthText = document.getElementById('lengthText')!;
         this.connectionStatus = document.getElementById('connectionStatus')!;
-        this.finalScore = document.getElementById('finalScore')!;
         this.finalLength = document.getElementById('finalLength')!;
         this.leaderboardList = document.getElementById('leaderboardList')!;
         this.fpsCounter = document.getElementById('fpsCounter')!;
@@ -392,8 +387,7 @@ class Game {
 
     private handleSnakeDied(data: any): void {
         if (data.playerId === this.localPlayerId) {
-            // Use the final score and length from the death event data
-            this.finalScoreValue = data.finalScore || 0;
+            // Use the final length from the death event data (already rounded from server)
             this.finalLengthValue = data.finalLength || 0;
             this.endTime = Date.now();
             this.showDeathScreen();
@@ -443,7 +437,6 @@ class Game {
     private updateUI(): void {
         const localPlayer = this.getLocalPlayer();
         if (localPlayer) {
-            this.scoreText.textContent = `Score: ${localPlayer.score}`;
             this.lengthText.textContent = `Length: ${localPlayer.getCurrentLength()}`;
         }
     }
@@ -504,7 +497,7 @@ class Game {
         (document.getElementById('finalTime') as HTMLElement).textContent = timeString;
         // Eliminations
         (document.getElementById('finalEliminations') as HTMLElement).textContent = this.eliminations.toString();
-        // Length
+        // Length (already rounded in handleSnakeDied)
         (document.getElementById('finalLength') as HTMLElement).textContent = this.finalLengthValue.toString();
         this.deathScreen.classList.remove('hidden');
         this.hideLoadingScreen(); // Ensure loading screen is hidden
