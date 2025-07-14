@@ -25,8 +25,7 @@ export const GAME_CONFIG = {
     INTERPOLATION_FACTOR: 0.15,
     BORDER_WIDTH: 50, // Width of the red kill border
     SNAKE_TURN_RATE: 4 // max turn rate in radians per second
-} as const;
-
+};
 // Socket.IO Event Names
 export const SOCKET_EVENTS = {
     CONNECTION: 'connection',
@@ -39,81 +38,16 @@ export const SOCKET_EVENTS = {
     FOOD_EATEN: 'food_eaten',
     PLAYER_JOINED: 'player_joined',
     PLAYER_LEFT: 'player_left'
-} as const;
-
+};
 // Network Update Types
 export const UPDATE_TYPES = {
     FULL_STATE: 'full_state',
     DELTA_STATE: 'delta_state',
     PLAYER_UPDATE: 'player_update',
     FOOD_UPDATE: 'food_update'
-} as const;
-
-// Game State Types
-export interface Vector2D {
-    x: number;
-    y: number;
-}
-
-export interface SnakeSegment {
-    x: number;
-    y: number;
-    radius: number;
-}
-
-export interface PlayerData {
-    id: string;
-    nickname: string;
-    color: string;
-    x: number;
-    y: number;
-    angle: number;
-    length: number;
-    thickness: number;
-    segments: SnakeSegment[];
-    alive: boolean;
-    score: number;
-}
-
-export interface FoodData {
-    id: string;
-    x: number;
-    y: number;
-    color: string;
-    size: number;
-    mass: number;
-}
-
-export interface GameState {
-    players: Map<string, PlayerData>;
-    food: Map<string, FoodData>;
-    timestamp: number;
-}
-
-export interface ClientMessage {
-    type: string;
-    data: any;
-    timestamp: number;
-}
-
-export interface ServerMessage {
-    type: string;
-    data: any;
-    timestamp: number;
-}
-
-export interface JoinGameMessage {
-    nickname: string;
-}
-
-export interface PlayerMoveMessage {
-    angle: number;
-    isBoosting: boolean;
-    timestamp: number;
-}
-
+};
 // Utility Functions
-export function generateRandomColor(): string {
+export function generateRandomColor() {
     const colors = [
         '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
         '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
@@ -121,27 +55,25 @@ export function generateRandomColor(): string {
     ];
     return colors[Math.floor(Math.random() * colors.length)];
 }
-
-export function generateId(): string {
+export function generateId() {
     return Math.random().toString(36).substr(2, 9);
 }
-
-export function distance(a: Vector2D, b: Vector2D): number {
+export function distance(a, b) {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
     return Math.sqrt(dx * dx + dy * dy);
 }
-
-export function normalizeAngle(angle: number): number {
-    while (angle > Math.PI) angle -= 2 * Math.PI;
-    while (angle < -Math.PI) angle += 2 * Math.PI;
+export function normalizeAngle(angle) {
+    while (angle > Math.PI)
+        angle -= 2 * Math.PI;
+    while (angle < -Math.PI)
+        angle += 2 * Math.PI;
     return angle;
 }
-
-export function clamp(value: number, min: number, max: number): number {
+export function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
-
-export function lerp(a: number, b: number, t: number): number {
+export function lerp(a, b, t) {
     return a + (b - a) * t;
-} 
+}
+//# sourceMappingURL=constants.js.map

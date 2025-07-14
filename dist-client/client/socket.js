@@ -1,21 +1,10 @@
 import { SOCKET_EVENTS } from '../common/constants.js';
-
-// Use the global io object loaded from the script tag
-declare global {
-    interface Window {
-        io: any;
-    }
-}
-
 // Get io from the global window object
 const io = window.io;
-
 export class SocketManager {
-    private socket: any;
-    private connected: boolean = false;
-    private eventHandlers: Map<string, Function[]> = new Map();
-
     constructor() {
+        this.connected = false;
+        this.eventHandlers = new Map();
         this.socket = io({
             autoConnect: false,
             reconnection: true,
@@ -24,107 +13,91 @@ export class SocketManager {
             reconnectionAttempts: 5,
             transports: ["websocket"]
         });
-
         this.setupEventHandlers();
     }
-
-    private setupEventHandlers(): void {
+    setupEventHandlers() {
         this.socket.on('connect', () => {
             console.log('Connected to server');
             this.connected = true;
             this.emit('connected');
         });
-
         this.socket.on('disconnect', () => {
             console.log('Disconnected from server');
             this.connected = false;
             this.emit('disconnected');
         });
-
-        this.socket.on('connect_error', (error: any) => {
+        this.socket.on('connect_error', (error) => {
             console.error('Connection error:', error);
             this.emit('connect_error', error);
         });
-
         // Game event handlers
-        this.socket.on(SOCKET_EVENTS.GAME_STATE, (data: any) => {
+        this.socket.on(SOCKET_EVENTS.GAME_STATE, (data) => {
             this.emit('game_state', data);
         });
-
-        this.socket.on(SOCKET_EVENTS.PLAYER_JOINED, (data: any) => {
+        this.socket.on(SOCKET_EVENTS.PLAYER_JOINED, (data) => {
             this.emit('player_joined', data);
         });
-
-        this.socket.on(SOCKET_EVENTS.PLAYER_LEFT, (data: any) => {
+        this.socket.on(SOCKET_EVENTS.PLAYER_LEFT, (data) => {
             this.emit('player_left', data);
         });
-
-        this.socket.on(SOCKET_EVENTS.SNAKE_DIED, (data: any) => {
+        this.socket.on(SOCKET_EVENTS.SNAKE_DIED, (data) => {
             this.emit('snake_died', data);
         });
-
-        this.socket.on(SOCKET_EVENTS.FOOD_EATEN, (data: any) => {
+        this.socket.on(SOCKET_EVENTS.FOOD_EATEN, (data) => {
             this.emit('food_eaten', data);
         });
     }
-
-    connect(): void {
+    connect() {
         if (!this.connected) {
             this.socket.connect();
         }
     }
-
-    disconnect(): void {
+    disconnect() {
         if (this.connected) {
             this.socket.disconnect();
         }
     }
-
-    joinGame(nickname: string): void {
+    joinGame(nickname) {
         this.socket.emit(SOCKET_EVENTS.JOIN_GAME, { nickname });
     }
-
-    sendPlayerMove(angle: number, isBoosting: boolean = false): void {
-        this.socket.emit(SOCKET_EVENTS.PLAYER_MOVE, { 
-            angle, 
+    sendPlayerMove(angle, isBoosting = false) {
+        this.socket.emit(SOCKET_EVENTS.PLAYER_MOVE, {
+            angle,
             isBoosting,
-            timestamp: Date.now() 
+            timestamp: Date.now()
         });
     }
-
-    on(event: string, callback: Function): void {
+    on(event, callback) {
         if (!this.eventHandlers.has(event)) {
             this.eventHandlers.set(event, []);
         }
-        this.eventHandlers.get(event)!.push(callback);
+        this.eventHandlers.get(event).push(callback);
     }
-
-    off(event: string, callback?: Function): void {
-        if (!this.eventHandlers.has(event)) return;
-        
-        const handlers = this.eventHandlers.get(event)!;
+    off(event, callback) {
+        if (!this.eventHandlers.has(event))
+            return;
+        const handlers = this.eventHandlers.get(event);
         if (callback) {
             const index = handlers.indexOf(callback);
             if (index !== -1) {
                 handlers.splice(index, 1);
             }
-        } else {
+        }
+        else {
             this.eventHandlers.set(event, []);
         }
     }
-
-    private emit(event: string, data?: any): void {
+    emit(event, data) {
         const handlers = this.eventHandlers.get(event);
         if (handlers) {
             handlers.forEach(handler => handler(data));
         }
     }
-
-    isConnected(): boolean {
+    isConnected() {
         return this.connected;
     }
-
-    getSocket(): any {
+    getSocket() {
         return this.socket;
     }
-} 
+}
+//# sourceMappingURL=socket.js.map

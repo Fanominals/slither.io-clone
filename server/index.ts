@@ -15,8 +15,13 @@ const io = new Server(server, {
 });
 
 // Serve static files from dist directory
-app.use(express.static(path.join(__dirname, '../dist-client')));
-app.use('/common', express.static(path.join(__dirname, '../dist/common')));
+app.use(express.static(path.join(process.cwd(), 'dist-client')));
+app.use('/common', express.static(path.join(process.cwd(), 'common')));
+
+// Serve index.html for all routes (for client-side routing)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'dist-client/index.html'));
+});
 
 // Game state instance
 const gameState = new GameState();
@@ -100,8 +105,9 @@ setInterval(() => {
 }, 1000 / GAME_CONFIG.TICK_RATE);
 
 // Start server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+const PORT = parseInt(process.env.PORT || '3000', 10);
+const HOST = '0.0.0.0';
+server.listen(PORT, HOST, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Game world: ${GAME_CONFIG.WORLD_WIDTH}x${GAME_CONFIG.WORLD_HEIGHT}`);
     console.log(`Tick rate: ${GAME_CONFIG.TICK_RATE} FPS`);

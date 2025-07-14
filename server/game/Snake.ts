@@ -23,6 +23,7 @@ export class Snake {
     public hasStartedMoving: boolean = false;
     public isBoosting: boolean = false;
     public boostTimer: number = 0; // Tracks time spent boosting
+    private lastAngleUpdate: number = Date.now();
 
     constructor(
         id: string,
@@ -140,7 +141,15 @@ export class Snake {
 
     // Set movement direction
     setDirection(angle: number): void {
-        this.angle = normalizeAngle(angle);
+        const now = Date.now();
+        const deltaTime = (now - this.lastAngleUpdate) / 1000;
+        this.lastAngleUpdate = now;
+        const maxTurn = GAME_CONFIG.SNAKE_TURN_RATE * deltaTime;
+        let angleDiff = normalizeAngle(angle - this.angle);
+        if (Math.abs(angleDiff) > maxTurn) {
+            angleDiff = Math.sign(angleDiff) * maxTurn;
+        }
+        this.angle = normalizeAngle(this.angle + angleDiff);
         this.hasStartedMoving = true;
     }
 

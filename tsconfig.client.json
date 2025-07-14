@@ -11,7 +11,8 @@
     "allowSyntheticDefaultImports": true
   },
   "include": [
-    "client/**/*"
+    "client/**/*",
+    "common/**/*"
   ],
   "exclude": [
     "server/**/*",

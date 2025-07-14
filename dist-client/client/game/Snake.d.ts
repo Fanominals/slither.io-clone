@@ -1,0 +1,33 @@
+import { PlayerData, SnakeSegment, Vector2D } from '../../common/constants.js';
+export declare class ClientSnake {
+    id: string;
+    nickname: string;
+    color: string;
+    x: number;
+    y: number;
+    angle: number;
+    length: number;
+    thickness: number;
+    segments: SnakeSegment[];
+    alive: boolean;
+    score: number;
+    isLocalPlayer: boolean;
+    private previousX;
+    private previousY;
+    private previousAngle;
+    private previousSegments;
+    private interpolationAlpha;
+    private lastUpdateTime;
+    constructor(playerData: PlayerData, isLocalPlayer?: boolean);
+    updateFromServer(playerData: PlayerData): void;
+    updateInterpolation(deltaTime: number): void;
+    getInterpolatedPosition(): Vector2D;
+    getInterpolatedAngle(): number;
+    getInterpolatedSegments(): SnakeSegment[];
+    getHeadPosition(): Vector2D;
+    getPredictedPosition(deltaTime: number): Vector2D;
+    isVisible(cameraX: number, cameraY: number, cameraZoom: number, screenWidth: number, screenHeight: number): boolean;
+    getCurrentLength(): number;
+    getDisplayName(): string;
+    getTotalMass(): number;
+}
