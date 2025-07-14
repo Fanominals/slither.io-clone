@@ -5,6 +5,7 @@ export class Input {
     private mousePosition: Vector2D = { x: 0, y: 0 };
     private isMouseInCanvas: boolean = false;
     private eventListeners: Array<() => void> = [];
+    private isBoostingState: boolean = false;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -28,16 +29,50 @@ export class Input {
             this.isMouseInCanvas = false;
         };
 
+        const handleMouseDown = (event: MouseEvent) => {
+            if (event.button === 0) { // Left mouse button
+                this.isBoostingState = true;
+            }
+        };
+
+        const handleMouseUp = (event: MouseEvent) => {
+            if (event.button === 0) { // Left mouse button
+                this.isBoostingState = false;
+            }
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                this.isBoostingState = true;
+            }
+        };
+
+        const handleKeyUp = (event: KeyboardEvent) => {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                this.isBoostingState = false;
+            }
+        };
+
         // Add event listeners and store references for cleanup
         this.canvas.addEventListener('mousemove', handleMouseMove);
         this.canvas.addEventListener('mouseenter', handleMouseEnter);
         this.canvas.addEventListener('mouseleave', handleMouseLeave);
+        this.canvas.addEventListener('mousedown', handleMouseDown);
+        this.canvas.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
 
         // Store cleanup functions
         this.eventListeners.push(() => {
             this.canvas.removeEventListener('mousemove', handleMouseMove);
             this.canvas.removeEventListener('mouseenter', handleMouseEnter);
             this.canvas.removeEventListener('mouseleave', handleMouseLeave);
+            this.canvas.removeEventListener('mousedown', handleMouseDown);
+            this.canvas.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('keyup', handleKeyUp);
         });
     }
 
@@ -102,5 +137,10 @@ export class Input {
     onCanvasResize(): void {
         // Update any canvas-related calculations if needed
         // For now, mouse position calculation is handled by getBoundingClientRect
+    }
+
+    // Check if the player is currently boosting
+    isBoosting(): boolean {
+        return this.isBoostingState;
     }
 } 

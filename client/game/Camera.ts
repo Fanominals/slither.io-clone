@@ -28,8 +28,8 @@ export class Camera {
         this.targetX = target.x;
         this.targetY = target.y;
         
-        // Calculate zoom based on snake length
-        const zoomFactor = Math.max(0.3, 1 - (snakeLength * GAME_CONFIG.ZOOM_SCALE_FACTOR / 100));
+        // Calculate zoom based on snake length - very gradual zoom out
+        const zoomFactor = Math.max(0.3, 1 - ((snakeLength - 3) * GAME_CONFIG.ZOOM_SCALE_FACTOR / 1000));
         this.targetZoom = clamp(zoomFactor, GAME_CONFIG.ZOOM_MIN, GAME_CONFIG.ZOOM_MAX);
     }
 

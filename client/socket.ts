@@ -83,9 +83,10 @@ export class SocketManager {
         this.socket.emit(SOCKET_EVENTS.JOIN_GAME, { nickname });
     }
 
-    sendPlayerMove(angle: number): void {
+    sendPlayerMove(angle: number, isBoosting: boolean = false): void {
         this.socket.emit(SOCKET_EVENTS.PLAYER_MOVE, { 
             angle, 
+            isBoosting,
             timestamp: Date.now() 
         });
     }

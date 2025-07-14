@@ -2,8 +2,8 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
-import { GameState } from './game/GameState.js';
-import { GAME_CONFIG, SOCKET_EVENTS } from '../common/constants.js';
+import { GameState } from './game/GameState';
+import { GAME_CONFIG, SOCKET_EVENTS } from '../common/constants';
 
 const app = express();
 const server = createServer(app);
@@ -14,9 +14,9 @@ const io = new Server(server, {
     }
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../client')));
-app.use('/common', express.static(path.join(__dirname, '../common')));
+// Serve static files from dist directory
+app.use(express.static(path.join(__dirname, '../dist/client')));
+app.use('/common', express.static(path.join(__dirname, '../dist/common')));
 
 // Game state instance
 const gameState = new GameState();
@@ -46,9 +46,9 @@ io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
     });
 
     // Handle player movement
-    socket.on(SOCKET_EVENTS.PLAYER_MOVE, (data: { angle: number, timestamp: number }) => {
+    socket.on(SOCKET_EVENTS.PLAYER_MOVE, (data: { angle: number, isBoosting: boolean, timestamp: number }) => {
         try {
-            gameState.updatePlayerDirection(socket.id, data.angle);
+            gameState.updatePlayerDirection(socket.id, data.angle, data.isBoosting);
         } catch (error) {
             console.error('Error updating player direction:', error);
         }

@@ -1,6 +1,6 @@
-import { Snake } from './Snake.js';
-import { Food } from './Food.js';
-import { Collision } from './Collision.js';
+import { Snake } from './Snake';
+import { Food } from './Food';
+import { Collision } from './Collision';
 import { 
     GAME_CONFIG, 
     PlayerData, 
@@ -103,10 +103,11 @@ export class GameState {
     }
 
     // Update player direction
-    updatePlayerDirection(id: string, angle: number): void {
+    updatePlayerDirection(id: string, angle: number, isBoosting: boolean = false): void {
         const snake = this.players.get(id);
         if (snake && snake.alive) {
             snake.setDirection(angle);
+            snake.setBoosting(isBoosting);
         }
     }
 
@@ -162,21 +163,29 @@ export class GameState {
                 Math.pow(head.y - food.y, 2)
             );
             
-            // Food attraction - move food towards snake head
-            if (distance <= GAME_CONFIG.FOOD_ATTRACTION_RADIUS && distance > food.size) {
-                const attractionForce = 1 - (distance / GAME_CONFIG.FOOD_ATTRACTION_RADIUS);
+            // Food attraction - move food towards snake head within attraction radius
+            if (distance <= GAME_CONFIG.FOOD_ATTRACTION_RADIUS && distance > GAME_CONFIG.FOOD_CONSUMPTION_DISTANCE) {
+                console.log(`Food attraction - Distance: ${distance.toFixed(1)}, Head: (${head.x.toFixed(1)}, ${head.y.toFixed(1)}), Food: (${food.x.toFixed(1)}, ${food.y.toFixed(1)})`);
+                
                 const dx = head.x - food.x;
                 const dy = head.y - food.y;
                 const length = Math.sqrt(dx * dx + dy * dy);
                 
                 if (length > 0) {
-                    food.x += (dx / length) * attractionForce * 2;
-                    food.y += (dy / length) * attractionForce * 2;
+                    // Simple smooth movement towards snake head
+                    const moveSpeed = 8; // Increased from 4 to make it more visible
+                    const moveX = (dx / length) * moveSpeed;
+                    const moveY = (dy / length) * moveSpeed;
+                    
+                    food.x += moveX;
+                    food.y += moveY;
+                    
+                    console.log(`Moving food by: (${moveX.toFixed(1)}, ${moveY.toFixed(1)}) to (${food.x.toFixed(1)}, ${food.y.toFixed(1)})`);
                 }
             }
             
             // Food consumption
-            if (distance <= head.radius + food.size) {
+            if (distance <= GAME_CONFIG.FOOD_CONSUMPTION_DISTANCE) {
                 snake.grow(food.mass);
                 foodToRemove.push(food.id);
                 

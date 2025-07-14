@@ -21,6 +21,7 @@ export class Snake {
     public score: number;
     public mass: number;
     public hasStartedMoving: boolean = false;
+    public isBoosting: boolean = false;
 
     constructor(
         id: string,
@@ -81,8 +82,9 @@ export class Snake {
 
         // Only move if the snake has started moving (user has provided input)
         if (this.hasStartedMoving) {
-            // Move head
-            const speed = GAME_CONFIG.SNAKE_SPEED * deltaTime;
+            // Move head - use boost speed if boosting
+            const baseSpeed = this.isBoosting ? GAME_CONFIG.SNAKE_BOOST_SPEED : GAME_CONFIG.SNAKE_SPEED;
+            const speed = baseSpeed * deltaTime;
             this.x += Math.cos(this.angle) * speed;
             this.y += Math.sin(this.angle) * speed;
 
@@ -128,10 +130,15 @@ export class Snake {
         this.hasStartedMoving = true;
     }
 
+    setBoosting(boosting: boolean): void {
+        this.isBoosting = boosting;
+    }
+
     // Grow the snake by adding mass
     grow(mass: number): void {
         this.mass += mass;
-        const newLength = Math.floor(this.mass);
+        const newLength = GAME_CONFIG.INITIAL_SNAKE_LENGTH + 
+                         Math.floor((this.mass - GAME_CONFIG.INITIAL_SNAKE_LENGTH) / GAME_CONFIG.MASS_PER_SEGMENT);
         
         // Add new segments if length increased
         while (this.segments.length < newLength) {

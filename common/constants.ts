@@ -5,19 +5,22 @@ export const GAME_CONFIG = {
     INITIAL_SNAKE_LENGTH: 3,
     INITIAL_SNAKE_THICKNESS: 20,
     SNAKE_SPEED: 200, // pixels per second
+    SNAKE_BOOST_SPEED: 350, // boost speed in pixels per second
     FOOD_SIZE: 8,
-    FOOD_ATTRACTION_RADIUS: 25,
+    FOOD_ATTRACTION_RADIUS: 50, // Radius where food starts gravitating towards snake head  
+    FOOD_CONSUMPTION_DISTANCE: 8, // Distance at which food gets consumed (much smaller)
     FOOD_COUNT: 800,
     GRID_SIZE: 40,
     TICK_RATE: 30, // server updates per second
     CAMERA_SMOOTH_FACTOR: 0.1,
-    ZOOM_MIN: 0.3,
+    ZOOM_MIN: 0.65,
     ZOOM_MAX: 1.2,
     ZOOM_SCALE_FACTOR: 0.8, // How much zoom changes with snake size
-    THICKNESS_SCALE_FACTOR: 0.3, // How much thickness increases with length
+    THICKNESS_SCALE_FACTOR: 0.15, // How much thickness increases with length
     SEGMENT_SPACING: 12,
     FOOD_MASS_MIN: 1,
     FOOD_MASS_MAX: 2,
+    MASS_PER_SEGMENT: 3, // How much mass is needed to grow one segment
     DEATH_FOOD_MULTIPLIER: 0.7, // How much food is dropped when snake dies
     INTERPOLATION_FACTOR: 0.15,
     BORDER_WIDTH: 50 // Width of the red kill border
@@ -104,6 +107,7 @@ export interface JoinGameMessage {
 
 export interface PlayerMoveMessage {
     angle: number;
+    isBoosting: boolean;
     timestamp: number;
 }
 

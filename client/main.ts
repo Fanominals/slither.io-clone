@@ -284,7 +284,8 @@ class Game {
             mousePos.x - playerScreenPos.x
         );
 
-        this.socketManager.sendPlayerMove(angle);
+        const isBoosting = this.input.isBoosting();
+        this.socketManager.sendPlayerMove(angle, isBoosting);
         this.lastMoveTime = currentTime;
     }
 
