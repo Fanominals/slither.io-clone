@@ -4,7 +4,7 @@ import { Input } from './game/Input.js';
 import { Renderer } from './game/Renderer.js';
 import { ClientSnake } from './game/Snake.js';
 import { ClientFood } from './game/Food.js';
-import { PlayerData, FoodData, GAME_CONFIG } from '../common/constants.js';
+import { PlayerData, FoodData, GAME_CONFIG } from './constants.js';
 
 class Game {
     private canvas!: HTMLCanvasElement;
