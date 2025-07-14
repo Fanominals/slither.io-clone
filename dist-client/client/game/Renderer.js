@@ -5,7 +5,7 @@ export class Renderer {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.camera = camera;
-        // Set up canvas properties
+        // Set up canvas properties for smooth rendering
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
         this.createGridPattern();
@@ -100,6 +100,9 @@ export class Renderer {
         const segments = snake.getInterpolatedSegments();
         if (segments.length === 0)
             return;
+        // Enable better anti-aliasing for smoother rendering
+        this.ctx.imageSmoothingEnabled = true;
+        this.ctx.imageSmoothingQuality = 'high';
         // Draw body segments
         for (let i = segments.length - 1; i >= 0; i--) {
             const segment = segments[i];
@@ -118,7 +121,7 @@ export class Renderer {
                 this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
                 this.ctx.lineWidth = 1;
             }
-            // Draw segment
+            // Draw segment with better anti-aliasing
             this.ctx.beginPath();
             this.ctx.arc(segment.x, segment.y, segment.radius, 0, Math.PI * 2);
             this.ctx.fill();

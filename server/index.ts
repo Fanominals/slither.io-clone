@@ -80,11 +80,17 @@ io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
 setInterval(() => {
     try {
         gameState.update(1 / GAME_CONFIG.TICK_RATE);
-        
-        // Send game state to all players
-        const state = gameState.getSerializableState();
-        io.emit(SOCKET_EVENTS.GAME_STATE, state);
-        
+
+        // Send per-player visible state
+        for (const [id, socket] of io.sockets.sockets) {
+            const state = gameState.getVisibleStateForPlayer(id);
+            socket.emit(SOCKET_EVENTS.GAME_STATE, state);
+        }
+
+        // Send leaderboard update to all players (all players regardless of distance)
+        const leaderboardData = gameState.getAllPlayersForLeaderboard();
+        io.emit(SOCKET_EVENTS.LEADERBOARD_UPDATE, leaderboardData);
+
         // Handle any events that occurred during update
         const events = gameState.getEvents();
         events.forEach((event: { type: string; data: any }) => {
@@ -97,7 +103,7 @@ setInterval(() => {
                     break;
             }
         });
-        
+
         gameState.clearEvents();
     } catch (error) {
         console.error('Error in game loop:', error);

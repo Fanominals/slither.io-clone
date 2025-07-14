@@ -9,6 +9,11 @@ export class Camera {
     public targetZoom: number = 1;
     public width: number;
     public height: number;
+    
+    // Velocity for smooth camera movement
+    private velocityX: number = 0;
+    private velocityY: number = 0;
+    private velocityZoom: number = 0;
 
     constructor(width: number, height: number) {
         this.width = width;
@@ -17,10 +22,28 @@ export class Camera {
 
     // Update camera position and zoom smoothly
     update(deltaTime: number): void {
-        // Smooth camera movement
-        this.x = lerp(this.x, this.targetX, GAME_CONFIG.CAMERA_SMOOTH_FACTOR);
-        this.y = lerp(this.y, this.targetY, GAME_CONFIG.CAMERA_SMOOTH_FACTOR);
-        this.zoom = lerp(this.zoom, this.targetZoom, GAME_CONFIG.CAMERA_SMOOTH_FACTOR);
+        // Use velocity-based smoothing for more responsive movement
+        const smoothFactor = GAME_CONFIG.CAMERA_SMOOTH_FACTOR;
+        
+        // Calculate target velocities with higher responsiveness
+        const targetVelocityX = (this.targetX - this.x) * smoothFactor * 20; // Increased from 10 to 20
+        const targetVelocityY = (this.targetY - this.y) * smoothFactor * 20; // Increased from 10 to 20
+        const targetVelocityZoom = (this.targetZoom - this.zoom) * smoothFactor * 15; // Increased from 10 to 15
+        
+        // Smooth velocity changes
+        this.velocityX = lerp(this.velocityX, targetVelocityX, smoothFactor);
+        this.velocityY = lerp(this.velocityY, targetVelocityY, smoothFactor);
+        this.velocityZoom = lerp(this.velocityZoom, targetVelocityZoom, smoothFactor);
+        
+        // Apply velocities
+        this.x += this.velocityX * deltaTime;
+        this.y += this.velocityY * deltaTime;
+        this.zoom += this.velocityZoom * deltaTime;
+        
+        // Apply damping to prevent overshooting
+        this.velocityX *= 0.95;
+        this.velocityY *= 0.95;
+        this.velocityZoom *= 0.95;
     }
 
     // Follow a target position (usually the player's snake head)
@@ -31,6 +54,24 @@ export class Camera {
         // Calculate zoom based on snake length - very gradual zoom out
         const zoomFactor = Math.max(0.3, 1 - ((snakeLength - 3) * GAME_CONFIG.ZOOM_SCALE_FACTOR / 1000));
         this.targetZoom = clamp(zoomFactor, GAME_CONFIG.ZOOM_MIN, GAME_CONFIG.ZOOM_MAX);
+    }
+
+    // Instantly snap camera to target position (for initial positioning)
+    snapToTarget(target: Vector2D, snakeLength: number): void {
+        this.x = target.x;
+        this.y = target.y;
+        this.targetX = target.x;
+        this.targetY = target.y;
+        
+        // Calculate zoom based on snake length
+        const zoomFactor = Math.max(0.3, 1 - ((snakeLength - 3) * GAME_CONFIG.ZOOM_SCALE_FACTOR / 1000));
+        this.zoom = clamp(zoomFactor, GAME_CONFIG.ZOOM_MIN, GAME_CONFIG.ZOOM_MAX);
+        this.targetZoom = this.zoom;
+        
+        // Reset velocities to prevent unwanted movement
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.velocityZoom = 0;
     }
 
     // Convert world coordinates to screen coordinates

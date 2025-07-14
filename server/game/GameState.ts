@@ -208,6 +208,10 @@ export class GameState {
             if (otherSnake.id !== snake.id && otherSnake.alive) {
                 // Check collision with other snake's body
                 if (this.collision.checkSnakeCollision(head, otherSnake.getSegments())) {
+                    // Capture final score and length before death
+                    const finalScore = snake.score;
+                    const finalLength = snake.length;
+                    
                     snake.die();
                     this.createFoodFromSnake(snake);
                     
@@ -215,7 +219,9 @@ export class GameState {
                         type: 'snake_died',
                         data: {
                             playerId: snake.id,
-                            killer: otherSnake.id
+                            killer: otherSnake.id,
+                            finalScore: finalScore,
+                            finalLength: finalLength
                         }
                     });
                     break;
@@ -234,6 +240,10 @@ export class GameState {
             
             console.log(`Snake ${snake.nickname} hit kill border! Head position: (${head.x}, ${head.y}), World: ${GAME_CONFIG.WORLD_WIDTH}x${GAME_CONFIG.WORLD_HEIGHT}`);
             
+            // Capture final score and length before death
+            const finalScore = snake.score;
+            const finalLength = snake.length;
+            
             snake.die();
             this.createFoodFromSnake(snake);
             
@@ -241,7 +251,9 @@ export class GameState {
                 type: 'snake_died',
                 data: {
                     playerId: snake.id,
-                    killer: null
+                    killer: null,
+                    finalScore: finalScore,
+                    finalLength: finalLength
                 }
             });
         }
@@ -270,6 +282,62 @@ export class GameState {
         return {
             players,
             food,
+            timestamp: Date.now()
+        };
+    }
+
+    // Get serializable game state for a specific player (only visible entities)
+    getVisibleStateForPlayer(playerId: string): any {
+        const player = this.players.get(playerId);
+        if (!player || !player.alive) {
+            // Fallback to empty state if player not found or dead
+            return { players: {}, food: {}, timestamp: Date.now() };
+        }
+        const head = player.getHead();
+        const radius = GAME_CONFIG.PLAYER_VIEW_RADIUS;
+        const players: any = {};
+        const food: any = {};
+
+        // Include all snakes whose head is within radius of this player's head
+        for (const [id, snake] of this.players) {
+            if (!snake.alive) continue;
+            const snakeHead = snake.getHead();
+            const dx = snakeHead.x - head.x;
+            const dy = snakeHead.y - head.y;
+            if (dx * dx + dy * dy <= radius * radius) {
+                players[id] = snake.getPlayerData();
+            }
+        }
+        // Always include the local player
+        players[playerId] = player.getPlayerData();
+
+        // Include food within radius
+        for (const [id, foodItem] of this.food) {
+            const dx = foodItem.x - head.x;
+            const dy = foodItem.y - head.y;
+            if (dx * dx + dy * dy <= radius * radius) {
+                food[id] = foodItem.getFoodData();
+            }
+        }
+        return {
+            players,
+            food,
+            timestamp: Date.now()
+        };
+    }
+
+    // Get all players for leaderboard (regardless of distance)
+    getAllPlayersForLeaderboard(): any {
+        const players: any = {};
+        
+        for (const [id, snake] of this.players) {
+            if (snake.alive) {
+                players[id] = snake.getPlayerData();
+            }
+        }
+        
+        return {
+            players,
             timestamp: Date.now()
         };
     }

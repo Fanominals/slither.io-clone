@@ -18,6 +18,7 @@ export declare class ClientSnake {
     private previousSegments;
     private interpolationAlpha;
     private lastUpdateTime;
+    private lastServerUpdateTime;
     constructor(playerData: PlayerData, isLocalPlayer?: boolean);
     updateFromServer(playerData: PlayerData): void;
     updateInterpolation(deltaTime: number): void;

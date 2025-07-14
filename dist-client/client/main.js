@@ -8,10 +8,17 @@ class Game {
     constructor() {
         // Game state
         this.players = new Map();
+        this.leaderboardPlayers = new Map(); // All players for leaderboard
         this.food = new Map();
         this.localPlayerId = null;
         this.gameRunning = false;
         this.lastUpdateTime = 0;
+        // Death screen data
+        this.finalScoreValue = 0;
+        this.finalLengthValue = 0;
+        this.startTime = 0;
+        this.endTime = 0;
+        this.eliminations = 0;
         this.frameTimes = [];
         this.lastFpsUpdate = 0;
         this.fps = 0;
@@ -19,7 +26,7 @@ class Game {
         this.currentNickname = '';
         this.connected = false;
         this.lastMoveTime = 0;
-        this.moveThrottle = 1000 / 60; // 60 FPS for movement updates
+        this.moveThrottle = 1000 / 120; // Increased from 60 to 120 FPS for more responsive input
         this.initializeDOM();
         this.initializeCanvas();
         this.initializeComponents();
@@ -109,6 +116,9 @@ class Game {
         this.socketManager.on('game_state', (state) => {
             this.handleGameState(state);
         });
+        this.socketManager.on('leaderboard_update', (data) => {
+            this.handleLeaderboardUpdate(data);
+        });
         this.socketManager.on('player_joined', (data) => {
             this.handlePlayerJoined(data);
         });
@@ -116,6 +126,10 @@ class Game {
             this.handlePlayerLeft(data);
         });
         this.socketManager.on('snake_died', (data) => {
+            // If local player killed someone, increment eliminations
+            if (data.killer === this.localPlayerId && data.playerId !== this.localPlayerId) {
+                this.eliminations++;
+            }
             this.handleSnakeDied(data);
         });
         this.socketManager.on('food_eaten', (data) => {
@@ -131,6 +145,9 @@ class Game {
         this.currentNickname = nickname;
         this.showLoadingScreen();
         this.socketManager.connect();
+        // Reset stats for new game
+        this.startTime = Date.now();
+        this.eliminations = 0;
         // The game screen will be shown when connection is established
         // See setupNetworking() 'connected' event handler
     }
@@ -158,7 +175,9 @@ class Game {
         const gameLoop = (currentTime) => {
             if (!this.lastUpdateTime)
                 this.lastUpdateTime = currentTime;
-            const deltaTime = (currentTime - this.lastUpdateTime) / 1000;
+            let deltaTime = (currentTime - this.lastUpdateTime) / 1000;
+            // Clamp delta time to prevent large jumps that cause jitter
+            deltaTime = Math.min(deltaTime, 1 / 30); // Max 30 FPS equivalent
             this.lastUpdateTime = currentTime;
             if (this.gameRunning) {
                 this.handleInput();
@@ -175,7 +194,13 @@ class Game {
         const localPlayer = this.getLocalPlayer();
         if (localPlayer) {
             const headPos = localPlayer.getHeadPosition();
-            this.camera.followTarget(headPos, localPlayer.getCurrentLength());
+            // If this is the first time we have a local player, snap camera to position
+            if (this.camera.x === 0 && this.camera.y === 0) {
+                this.camera.snapToTarget(headPos, localPlayer.getCurrentLength());
+            }
+            else {
+                this.camera.followTarget(headPos, localPlayer.getCurrentLength());
+            }
         }
         this.camera.update(deltaTime);
         // Update players
@@ -270,15 +295,28 @@ class Game {
         }
         this.updateLeaderboard();
     }
+    handleLeaderboardUpdate(data) {
+        // Update the leaderboard players map with all players
+        this.leaderboardPlayers.clear();
+        for (const [id, playerData] of Object.entries(data.players)) {
+            this.leaderboardPlayers.set(id, playerData);
+        }
+        this.updateLeaderboard();
+    }
     handlePlayerJoined(data) {
         console.log(`Player ${data.nickname} joined`);
     }
     handlePlayerLeft(data) {
         this.players.delete(data.id);
+        this.leaderboardPlayers.delete(data.id);
         console.log(`Player left: ${data.id}`);
     }
     handleSnakeDied(data) {
         if (data.playerId === this.localPlayerId) {
+            // Use the final score and length from the death event data
+            this.finalScoreValue = data.finalScore || 0;
+            this.finalLengthValue = data.finalLength || 0;
+            this.endTime = Date.now();
             this.showDeathScreen();
             this.gameRunning = false;
         }
@@ -316,8 +354,8 @@ class Game {
         }
     }
     updateLeaderboard() {
-        // Gather all ALIVE players as array
-        const playersArr = Array.from(this.players.values()).filter(player => player.alive);
+        // Use leaderboard players data (all players) instead of visible players
+        const playersArr = Array.from(this.leaderboardPlayers.values()).filter(player => player.alive);
         // Sort by length descending
         playersArr.sort((a, b) => b.length - a.length);
         // Take top 5
@@ -363,11 +401,16 @@ class Game {
         this.hideDeathScreen();
     }
     showDeathScreen() {
-        const localPlayer = this.getLocalPlayer();
-        if (localPlayer) {
-            this.finalScore.textContent = localPlayer.score.toString();
-            this.finalLength.textContent = localPlayer.getCurrentLength().toString();
-        }
+        // Time survived
+        const timeSurvived = Math.max(0, Math.floor((this.endTime - this.startTime) / 1000));
+        const minutes = Math.floor(timeSurvived / 60);
+        const seconds = timeSurvived % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('finalTime').textContent = timeString;
+        // Eliminations
+        document.getElementById('finalEliminations').textContent = this.eliminations.toString();
+        // Length
+        document.getElementById('finalLength').textContent = this.finalLengthValue.toString();
         this.deathScreen.classList.remove('hidden');
         this.hideLoadingScreen(); // Ensure loading screen is hidden
     }

@@ -11,8 +11,8 @@ export const GAME_CONFIG = {
     FOOD_CONSUMPTION_DISTANCE: 8, // Distance at which food gets consumed (much smaller)
     FOOD_COUNT: 800,
     GRID_SIZE: 40,
-    TICK_RATE: 30, // server updates per second
-    CAMERA_SMOOTH_FACTOR: 0.1,
+    TICK_RATE: 60, // server updates per second (increased from 30 to 60)
+    CAMERA_SMOOTH_FACTOR: 0.25, // Increased from 0.15 for more responsive camera
     ZOOM_MIN: 0.65,
     ZOOM_MAX: 1.2,
     ZOOM_SCALE_FACTOR: 0.8, // How much zoom changes with snake size
@@ -22,9 +22,10 @@ export const GAME_CONFIG = {
     FOOD_MASS_MAX: 2,
     MASS_PER_SEGMENT: 3, // How much mass is needed to grow one segment
     DEATH_FOOD_MULTIPLIER: 0.7, // How much food is dropped when snake dies
-    INTERPOLATION_FACTOR: 0.15,
+    INTERPOLATION_FACTOR: 0.08, // Reduced from 0.15 for smoother interpolation
     BORDER_WIDTH: 50, // Width of the red kill border
-    SNAKE_TURN_RATE: 4 // max turn rate in radians per second
+    SNAKE_TURN_RATE: 3.5, // radians per second
+    PLAYER_VIEW_RADIUS: 2000, // Only send entities within this radius of the player's head
 };
 // Socket.IO Event Names
 export const SOCKET_EVENTS = {
@@ -34,6 +35,7 @@ export const SOCKET_EVENTS = {
     LEAVE_GAME: 'leave_game',
     PLAYER_MOVE: 'player_move',
     GAME_STATE: 'game_state',
+    LEADERBOARD_UPDATE: 'leaderboard_update',
     SNAKE_DIED: 'snake_died',
     FOOD_EATEN: 'food_eaten',
     PLAYER_JOINED: 'player_joined',

@@ -8,9 +8,13 @@ export declare class Camera {
     targetZoom: number;
     width: number;
     height: number;
+    private velocityX;
+    private velocityY;
+    private velocityZoom;
     constructor(width: number, height: number);
     update(deltaTime: number): void;
     followTarget(target: Vector2D, snakeLength: number): void;
+    snapToTarget(target: Vector2D, snakeLength: number): void;
     worldToScreen(worldPos: Vector2D): Vector2D;
     screenToWorld(screenPos: Vector2D): Vector2D;
     getVisibleBounds(): {

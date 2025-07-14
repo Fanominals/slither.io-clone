@@ -27,6 +27,7 @@ export class ClientSnake {
     private previousSegments: SnakeSegment[];
     private interpolationAlpha: number = 0;
     private lastUpdateTime: number = 0;
+    private lastServerUpdateTime: number = 0;
 
     constructor(playerData: PlayerData, isLocalPlayer: boolean = false) {
         this.id = playerData.id;
@@ -48,6 +49,7 @@ export class ClientSnake {
         this.previousAngle = this.angle;
         this.previousSegments = [...this.segments];
         this.lastUpdateTime = Date.now();
+        this.lastServerUpdateTime = Date.now();
     }
 
     // Update with server data
@@ -78,13 +80,28 @@ export class ClientSnake {
         // Reset interpolation
         this.interpolationAlpha = 0;
         this.lastUpdateTime = Date.now();
+        this.lastServerUpdateTime = Date.now();
     }
 
     // Update interpolation for smooth movement
     updateInterpolation(deltaTime: number): void {
-        if (!this.isLocalPlayer) {
-            // Only interpolate for remote players
-            this.interpolationAlpha = Math.min(1, this.interpolationAlpha + deltaTime * 8);
+        if (this.isLocalPlayer) {
+            // For local player, use prediction to reduce jitter
+            const timeSinceServerUpdate = (Date.now() - this.lastServerUpdateTime) / 1000;
+            const serverUpdateInterval = 1 / GAME_CONFIG.TICK_RATE;
+            
+            // If we're waiting for the next server update, predict movement
+            if (timeSinceServerUpdate > serverUpdateInterval * 0.5) {
+                // Apply prediction for smoother local movement
+                const predictionTime = Math.min(timeSinceServerUpdate - serverUpdateInterval * 0.5, serverUpdateInterval);
+                const speed = GAME_CONFIG.SNAKE_SPEED * predictionTime;
+                
+                this.x += Math.cos(this.angle) * speed;
+                this.y += Math.sin(this.angle) * speed;
+            }
+        } else {
+            // For remote players, use smooth interpolation
+            this.interpolationAlpha = Math.min(1, this.interpolationAlpha + deltaTime / GAME_CONFIG.INTERPOLATION_FACTOR);
         }
     }
 

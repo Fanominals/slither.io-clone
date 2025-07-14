@@ -250,55 +250,88 @@ body {
     backdrop-filter: blur(5px);
 }
 
+/* --- New Death Screen Styles --- */
 .death-content {
     text-align: center;
-    background: rgba(0, 0, 0, 0.9);
-    padding: 40px;
+    background: rgba(30, 0, 0, 0.95);
+    padding: 48px 36px 36px 36px;
     border-radius: 20px;
-    border: 2px solid #ff6b6b;
-    box-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+    border: 2px solid #ff3b3b;
+    box-shadow: 0 0 40px rgba(255, 59, 59, 0.25);
+    min-width: 340px;
+    max-width: 95vw;
 }
-
-.death-content h2 {
-    font-size: 2.5rem;
-    color: #ff6b6b;
-    margin-bottom: 20px;
-    text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+.death-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 28px;
 }
-
-.death-stats {
-    margin-bottom: 30px;
+.death-icon {
+    font-size: 3.5rem;
+    color: #ff3b3b;
+    margin-bottom: 8px;
+    text-shadow: 0 0 16px #ff3b3b44;
 }
-
-.death-stats div {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-}
-
-.death-stats span {
-    color: #4ecdc4;
+.death-title {
+    font-size: 2.3rem;
+    color: #ff3b3b;
     font-weight: bold;
+    margin: 0;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px #ff3b3b33;
 }
-
+.death-stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    margin-bottom: 32px;
+}
+.death-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+}
+.stat-icon {
+    font-size: 1.7rem;
+    margin-bottom: 4px;
+}
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 2px;
+}
+.stat-label {
+    font-size: 1.02rem;
+    color: #b8b8b8;
+    font-weight: 400;
+}
 .respawn-button {
-    padding: 15px 30px;
-    font-size: 1.1rem;
+    margin-top: 10px;
+    padding: 15px 40px;
+    font-size: 1.2rem;
     font-weight: bold;
-    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-    color: white;
+    background: linear-gradient(45deg, #ffd600, #ffb300);
+    color: #222;
     border: none;
     border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 214, 0, 0.18);
     text-transform: uppercase;
     letter-spacing: 1px;
+    min-width: 160px;
 }
-
 .respawn-button:hover {
+    background: linear-gradient(45deg, #ffb300, #ffd600);
+    color: #111;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    box-shadow: 0 6px 20px rgba(255, 214, 0, 0.25);
 }
+/* Remove old death-stats styles */
+.death-stats, .death-stats div, .death-stats span { all: unset; }
 
 /* Loading Screen */
 .loading-screen {

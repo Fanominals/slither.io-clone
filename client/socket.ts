@@ -51,6 +51,10 @@ export class SocketManager {
             this.emit('game_state', data);
         });
 
+        this.socket.on(SOCKET_EVENTS.LEADERBOARD_UPDATE, (data: any) => {
+            this.emit('leaderboard_update', data);
+        });
+
         this.socket.on(SOCKET_EVENTS.PLAYER_JOINED, (data: any) => {
             this.emit('player_joined', data);
         });

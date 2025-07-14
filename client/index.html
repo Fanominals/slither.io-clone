@@ -43,10 +43,26 @@
         <!-- Death Screen -->
         <div id="deathScreen" class="death-screen hidden">
             <div class="death-content">
-                <h2>You died!</h2>
-                <div class="death-stats">
-                    <div>Final Score: <span id="finalScore">0</span></div>
-                    <div>Length Reached: <span id="finalLength">0</span></div>
+                <div class="death-header">
+                    <span class="death-icon">❌</span>
+                    <h2 class="death-title">Game Over</h2>
+                </div>
+                <div class="death-stats-row">
+                    <div class="death-stat">
+                        <span class="stat-icon stat-time">⏰</span>
+                        <span class="stat-value" id="finalTime">0:00</span>
+                        <span class="stat-label">Time Survived</span>
+                    </div>
+                    <div class="death-stat">
+                        <span class="stat-icon stat-kills">🔥</span>
+                        <span class="stat-value" id="finalEliminations">0</span>
+                        <span class="stat-label">Eliminations</span>
+                    </div>
+                    <div class="death-stat">
+                        <span class="stat-icon stat-length">🟢</span>
+                        <span class="stat-value" id="finalLength">0</span>
+                        <span class="stat-label">Length</span>
+                    </div>
                 </div>
                 <button id="respawnButton" class="respawn-button">Play Again</button>
             </div>

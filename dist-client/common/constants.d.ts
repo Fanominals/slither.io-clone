@@ -10,8 +10,8 @@ export declare const GAME_CONFIG: {
     readonly FOOD_CONSUMPTION_DISTANCE: 8;
     readonly FOOD_COUNT: 800;
     readonly GRID_SIZE: 40;
-    readonly TICK_RATE: 30;
-    readonly CAMERA_SMOOTH_FACTOR: 0.1;
+    readonly TICK_RATE: 60;
+    readonly CAMERA_SMOOTH_FACTOR: 0.25;
     readonly ZOOM_MIN: 0.65;
     readonly ZOOM_MAX: 1.2;
     readonly ZOOM_SCALE_FACTOR: 0.8;
@@ -21,9 +21,10 @@ export declare const GAME_CONFIG: {
     readonly FOOD_MASS_MAX: 2;
     readonly MASS_PER_SEGMENT: 3;
     readonly DEATH_FOOD_MULTIPLIER: 0.7;
-    readonly INTERPOLATION_FACTOR: 0.15;
+    readonly INTERPOLATION_FACTOR: 0.08;
     readonly BORDER_WIDTH: 50;
-    readonly SNAKE_TURN_RATE: 4;
+    readonly SNAKE_TURN_RATE: 3.5;
+    readonly PLAYER_VIEW_RADIUS: 2000;
 };
 export declare const SOCKET_EVENTS: {
     readonly CONNECTION: "connection";
@@ -32,6 +33,7 @@ export declare const SOCKET_EVENTS: {
     readonly LEAVE_GAME: "leave_game";
     readonly PLAYER_MOVE: "player_move";
     readonly GAME_STATE: "game_state";
+    readonly LEADERBOARD_UPDATE: "leaderboard_update";
     readonly SNAKE_DIED: "snake_died";
     readonly FOOD_EATEN: "food_eaten";
     readonly PLAYER_JOINED: "player_joined";
