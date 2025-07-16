@@ -1,19 +1,19 @@
 export declare const GAME_CONFIG: {
-    readonly WORLD_WIDTH: 4000;
-    readonly WORLD_HEIGHT: 4000;
+    readonly WORLD_WIDTH: 8000;
+    readonly WORLD_HEIGHT: 8000;
     readonly INITIAL_SNAKE_LENGTH: 10;
     readonly INITIAL_SNAKE_THICKNESS: 40;
     readonly SNAKE_SPEED: 200;
-    readonly SNAKE_BOOST_SPEED: 350;
+    readonly SNAKE_BOOST_SPEED: 400;
     readonly FOOD_SIZE: 8;
     readonly FOOD_ATTRACTION_RADIUS: 50;
     readonly FOOD_CONSUMPTION_DISTANCE: 8;
-    readonly FOOD_COUNT: 800;
+    readonly FOOD_DENSITY: 0.00005;
     readonly GRID_SIZE: 80;
     readonly TICK_RATE: 60;
     readonly CAMERA_SMOOTH_FACTOR: 0.25;
-    readonly ZOOM_MIN: 0.5;
-    readonly ZOOM_MAX: 0.75;
+    readonly ZOOM_MIN: 0.75;
+    readonly ZOOM_MAX: 1;
     readonly ZOOM_SCALE_FACTOR: 0.8;
     readonly THICKNESS_SCALE_FACTOR: 0.075;
     readonly VISUAL_LENGTH_FACTOR: 0.4;
@@ -23,8 +23,12 @@ export declare const GAME_CONFIG: {
     readonly INTERPOLATION_FACTOR: 0.08;
     readonly BORDER_WIDTH: 50;
     readonly SNAKE_TURN_RATE: 3.5;
-    readonly PLAYER_VIEW_RADIUS: 1000;
-    readonly BOT_COUNT: 10;
+    readonly PLAYER_VIEW_RADIUS: 2000;
+    readonly BOT_COUNT: 1;
+    readonly SPATIAL_GRID_CELL_SIZE: 500;
+    readonly SNAKE_SPAWN_MIN_DIST: 200;
+    readonly BOOST_LENGTH_LOSS_PER_SEC: 5;
+    readonly INPUT_DEADZONE: 30;
 };
 export declare const SOCKET_EVENTS: {
     readonly CONNECTION: "connection";
@@ -65,6 +69,7 @@ export interface PlayerData {
     thickness: number;
     segments: SnakeSegment[];
     alive: boolean;
+    isBoosting: boolean;
 }
 export interface FoodData {
     id: string;
@@ -103,3 +108,4 @@ export declare function distance(a: Vector2D, b: Vector2D): number;
 export declare function normalizeAngle(angle: number): number;
 export declare function clamp(value: number, min: number, max: number): number;
 export declare function lerp(a: number, b: number, t: number): number;
+export declare function getFoodCount(): number;

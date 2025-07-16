@@ -90,21 +90,14 @@ export class Snake {
 
         // --- Boosting length reduction logic ---
         if (this.isBoosting && this.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
-            this.boostTimer += deltaTime;
-            if (this.boostTimer >= 1) {
-                // Reduce score length by 2 per second
-                this.length = Math.max(this.length - 2, GAME_CONFIG.INITIAL_SNAKE_LENGTH);
-                
-                // Calculate target visual length and remove excess segments
-                const targetVisualLength = Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR);
-                while (this.segments.length > targetVisualLength && this.segments.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
-                    this.segments.pop();
-                }
-                
-                this.boostTimer = 0;
+            // Lose length proportional to time spent boosting
+            const lengthLoss = GAME_CONFIG.BOOST_LENGTH_LOSS_PER_SEC * deltaTime;
+            this.length = Math.max(this.length - lengthLoss, GAME_CONFIG.INITIAL_SNAKE_LENGTH);
+            // Calculate target visual length and remove excess segments
+            const targetVisualLength = Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR);
+            while (this.segments.length > targetVisualLength && this.segments.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
+                this.segments.pop();
             }
-        } else {
-            this.boostTimer = 0;
         }
     }
 
@@ -154,7 +147,12 @@ export class Snake {
     }
 
     setBoosting(boosting: boolean): void {
-        this.isBoosting = boosting;
+        // Prevent boosting when at minimum length
+        if (boosting && this.length <= GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
+            this.isBoosting = false;
+        } else {
+            this.isBoosting = boosting;
+        }
     }
 
     // Grow the snake by adding length
@@ -218,7 +216,8 @@ export class Snake {
             length: Math.floor(this.length),
             thickness: this.thickness,
             segments: this.segments,
-            alive: this.alive
+            alive: this.alive,
+            isBoosting: this.isBoosting
         };
     }
 } 

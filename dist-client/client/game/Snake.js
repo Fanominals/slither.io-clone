@@ -14,6 +14,7 @@ export class ClientSnake {
         this.thickness = playerData.thickness;
         this.segments = [...playerData.segments];
         this.alive = playerData.alive;
+        this.isBoosting = playerData.isBoosting || false;
         this.isLocalPlayer = isLocalPlayer;
         // Initialize interpolation
         this.previousX = this.x;
@@ -44,6 +45,7 @@ export class ClientSnake {
         this.alive = playerData.alive;
         this.nickname = playerData.nickname;
         this.color = playerData.color;
+        this.isBoosting = playerData.isBoosting || false;
         // Reset interpolation
         this.interpolationAlpha = 0;
         this.lastUpdateTime = Date.now();
@@ -161,12 +163,18 @@ export class ClientSnake {
             top: cameraY - halfHeight,
             bottom: cameraY + halfHeight
         };
-        const headPos = this.getHeadPosition();
-        const maxRadius = this.thickness;
-        return (headPos.x + maxRadius >= bounds.left &&
-            headPos.x - maxRadius <= bounds.right &&
-            headPos.y + maxRadius >= bounds.top &&
-            headPos.y - maxRadius <= bounds.bottom);
+        // Check all segments for visibility
+        const segments = this.getInterpolatedSegments();
+        for (const segment of segments) {
+            const radius = segment.radius || this.thickness;
+            if (segment.x + radius >= bounds.left &&
+                segment.x - radius <= bounds.right &&
+                segment.y + radius >= bounds.top &&
+                segment.y - radius <= bounds.bottom) {
+                return true;
+            }
+        }
+        return false;
     }
     // Get snake's current length including growth
     getCurrentLength() {
@@ -179,6 +187,10 @@ export class ClientSnake {
     // Get snake's total length
     getTotalLength() {
         return this.length;
+    }
+    // Check if boosting is allowed (for UI feedback)
+    canBoost() {
+        return this.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH;
     }
 }
 //# sourceMappingURL=Snake.js.map

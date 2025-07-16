@@ -1,13 +1,15 @@
 import { Snake } from './Snake';
 import { Food } from './Food';
 import { Collision } from './Collision';
+import { SpatialGrid } from './SpatialGrid';
 import { 
     GAME_CONFIG, 
     PlayerData, 
     FoodData, 
     Vector2D,
     generateRandomColor,
-    generateId
+    generateId,
+    getFoodCount
 } from '../../common/constants';
 
 export interface GameEvent {
@@ -20,15 +22,19 @@ export class GameState {
     private food: Map<string, Food> = new Map();
     private events: GameEvent[] = [];
     private collision: Collision;
+    private segmentGrid: SpatialGrid<{ snakeId: string, segment: any }>;
+    private foodGrid: SpatialGrid<Food>;
 
     constructor() {
         this.collision = new Collision();
+        this.segmentGrid = new SpatialGrid(GAME_CONFIG.SPATIAL_GRID_CELL_SIZE);
+        this.foodGrid = new SpatialGrid(GAME_CONFIG.SPATIAL_GRID_CELL_SIZE);
         this.initializeFoodParticles();
     }
 
     // Initialize food particles across the game world
     private initializeFoodParticles(): void {
-        for (let i = 0; i < GAME_CONFIG.FOOD_COUNT; i++) {
+        for (let i = 0; i < getFoodCount(); i++) {
             this.spawnFoodParticle();
         }
     }
@@ -92,10 +98,15 @@ export class GameState {
         return position;
     }
 
-    // Check if a position is occupied by a snake
+    // Check if a position is occupied by a snake (near any head)
     private isPositionOccupied(position: Vector2D): boolean {
         for (const snake of this.players.values()) {
-            if (snake.isPositionInside(position)) {
+            if (!snake.alive) continue;
+            const head = snake.getHead();
+            const dx = position.x - head.x;
+            const dy = position.y - head.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < GAME_CONFIG.SNAKE_SPAWN_MIN_DIST * GAME_CONFIG.SNAKE_SPAWN_MIN_DIST) {
                 return true;
             }
         }
@@ -136,18 +147,29 @@ export class GameState {
         for (const snake of this.players.values()) {
             if (snake.alive) {
                 snake.update(deltaTime);
-                
-                // Check food collision and attraction
+            }
+        }
+        // Rebuild spatial grids
+        this.segmentGrid.clear();
+        this.foodGrid.clear();
+        for (const [id, snake] of this.players) {
+            if (!snake.alive) continue;
+            const segments = snake.getSegments();
+            for (const segment of segments) {
+                this.segmentGrid.insert(segment.x, segment.y, { snakeId: id, segment });
+            }
+        }
+        for (const food of this.food.values()) {
+            this.foodGrid.insert(food.x, food.y, food);
+        }
+        // Check food collision and attraction, snake collisions, and world boundaries
+        for (const snake of this.players.values()) {
+            if (snake.alive) {
                 this.checkFoodCollisions(snake);
-                
-                // Check snake-to-snake collisions
                 this.checkSnakeCollisions(snake);
-                
-                // Check world boundaries
                 this.checkWorldBoundaries(snake);
             }
         }
-        
         // Maintain food count
         this.maintainFoodCount();
     }
@@ -156,35 +178,31 @@ export class GameState {
     private checkFoodCollisions(snake: Snake): void {
         const head = snake.getHead();
         const foodToRemove: string[] = [];
-        
-        for (const food of this.food.values()) {
+        // Only check food within view radius
+        const nearbyFood = this.foodGrid.queryRadius(head.x, head.y, GAME_CONFIG.PLAYER_VIEW_RADIUS);
+        for (const food of nearbyFood) {
             const distance = Math.sqrt(
                 Math.pow(head.x - food.x, 2) + 
                 Math.pow(head.y - food.y, 2)
             );
-            
             // Food attraction - move food towards snake head within attraction radius
             if (distance <= GAME_CONFIG.FOOD_ATTRACTION_RADIUS && distance > GAME_CONFIG.FOOD_CONSUMPTION_DISTANCE) {
                 const dx = head.x - food.x;
                 const dy = head.y - food.y;
                 const length = Math.sqrt(dx * dx + dy * dy);
-                
                 if (length > 0) {
                     // Simple smooth movement towards snake head
                     const moveSpeed = 8; // pixels per update - smooth but visible
                     const moveX = (dx / length) * moveSpeed;
                     const moveY = (dy / length) * moveSpeed;
-                    
                     food.x += moveX;
                     food.y += moveY;
                 }
             }
-            
             // Food consumption
             if (distance <= GAME_CONFIG.FOOD_CONSUMPTION_DISTANCE) {
                 snake.grow(food.lengthIncrement);
                 foodToRemove.push(food.id);
-                
                 this.events.push({
                     type: 'food_eaten',
                     data: {
@@ -195,7 +213,6 @@ export class GameState {
                 });
             }
         }
-        
         // Remove consumed food
         foodToRemove.forEach(id => this.food.delete(id));
     }
@@ -203,22 +220,20 @@ export class GameState {
     // Check snake-to-snake collisions
     private checkSnakeCollisions(snake: Snake): void {
         const head = snake.getHead();
-        
-        for (const otherSnake of this.players.values()) {
-            if (otherSnake.id !== snake.id && otherSnake.alive) {
-                // Check collision with other snake's body
-                if (this.collision.checkSnakeCollision(head, otherSnake.getSegments())) {
+        // Only check segments within view radius
+        const nearbySegments = this.segmentGrid.queryRadius(head.x, head.y, GAME_CONFIG.PLAYER_VIEW_RADIUS, obj => obj.segment);
+        for (const { snakeId, segment } of nearbySegments) {
+            if (snakeId !== snake.id) {
+                if (this.collision.checkSnakeCollision(head, [segment])) {
                     // Capture final length before death (use rounded value)
                     const finalLength = Math.floor(snake.length);
-                    
                     snake.die();
                     this.createFoodFromSnake(snake);
-                    
                     this.events.push({
                         type: 'snake_died',
                         data: {
                             playerId: snake.id,
-                            killer: otherSnake.id,
+                            killer: snakeId,
                             finalLength: finalLength
                         }
                     });
@@ -232,18 +247,13 @@ export class GameState {
     private checkWorldBoundaries(snake: Snake): void {
         const head = snake.getHead();
         const borderBuffer = GAME_CONFIG.BORDER_WIDTH * 0.5; // Allow snake to enter border area slightly
-        
         if (head.x < -borderBuffer || head.x > GAME_CONFIG.WORLD_WIDTH + borderBuffer || 
             head.y < -borderBuffer || head.y > GAME_CONFIG.WORLD_HEIGHT + borderBuffer) {
-            
             console.log(`Snake ${snake.nickname} hit kill border! Head position: (${head.x}, ${head.y}), World: ${GAME_CONFIG.WORLD_WIDTH}x${GAME_CONFIG.WORLD_HEIGHT}`);
-            
             // Capture final length before death (use rounded value)
             const finalLength = Math.floor(snake.length);
-            
             snake.die();
             this.createFoodFromSnake(snake);
-            
             this.events.push({
                 type: 'snake_died',
                 data: {
@@ -257,7 +267,7 @@ export class GameState {
 
     // Maintain food count by spawning new particles
     private maintainFoodCount(): void {
-        while (this.food.size < GAME_CONFIG.FOOD_COUNT) {
+        while (this.food.size < getFoodCount()) {
             this.spawnFoodParticle();
         }
     }
@@ -266,15 +276,12 @@ export class GameState {
     getSerializableState(): any {
         const players: any = {};
         const food: any = {};
-        
         for (const [id, snake] of this.players) {
             players[id] = snake.getPlayerData();
         }
-        
         for (const [id, foodItem] of this.food) {
             food[id] = foodItem.getFoodData();
         }
-        
         return {
             players,
             food,
@@ -282,7 +289,7 @@ export class GameState {
         };
     }
 
-    // Get serializable game state for a specific player (only visible entities)
+    // Get visible state for a specific player using the spatial grid
     getVisibleStateForPlayer(playerId: string): any {
         const player = this.players.get(playerId);
         if (!player || !player.alive) {
@@ -293,48 +300,42 @@ export class GameState {
         const radius = GAME_CONFIG.PLAYER_VIEW_RADIUS;
         const players: any = {};
         const food: any = {};
-
-        // Include all snakes if ANY segment is within radius of this player's head
-        for (const [id, snake] of this.players) {
-            if (!snake.alive) continue;
-            const segments = snake.getSegments();
-            // Compute bounding box
-            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-            for (const segment of segments) {
-                if (segment.x < minX) minX = segment.x;
-                if (segment.x > maxX) maxX = segment.x;
-                if (segment.y < minY) minY = segment.y;
-                if (segment.y > maxY) maxY = segment.y;
+        
+        // Use grid to get nearby segments
+        const nearbySegments = this.segmentGrid.queryRadius(head.x, head.y, radius, obj => obj.segment);
+        const visibleSnakeIds = new Set<string>();
+        
+        // Check each segment to see if it's within the view radius
+        for (const { snakeId, segment } of nearbySegments) {
+            const dx = segment.x - head.x;
+            const dy = segment.y - head.y;
+            if (dx * dx + dy * dy <= radius * radius) {
+                visibleSnakeIds.add(snakeId);
             }
-            // Fast bounding box check: if box is outside view radius, skip
-            const dx = Math.max(minX - head.x, 0, head.x - maxX);
-            const dy = Math.max(minY - head.y, 0, head.y - maxY);
-            if (dx * dx + dy * dy > radius * radius) continue;
-            // Now check segments
-            let inView = false;
-            for (const segment of segments) {
-                const dx = segment.x - head.x;
-                const dy = segment.y - head.y;
-                if (dx * dx + dy * dy <= radius * radius) {
-                    inView = true;
-                    break;
-                }
-            }
-            if (inView) {
+        }
+        
+        // Include all snakes that have any segment within the view radius
+        // This ensures the entire snake is visible if any part of it is in range
+        for (const id of visibleSnakeIds) {
+            const snake = this.players.get(id);
+            if (snake && snake.alive) {
                 players[id] = snake.getPlayerData();
             }
         }
+        
         // Always include the local player
         players[playerId] = player.getPlayerData();
-
-        // Include food within radius
-        for (const [id, foodItem] of this.food) {
+        
+        // Use grid to get nearby food
+        const nearbyFood = this.foodGrid.queryRadius(head.x, head.y, radius);
+        for (const foodItem of nearbyFood) {
             const dx = foodItem.x - head.x;
             const dy = foodItem.y - head.y;
             if (dx * dx + dy * dy <= radius * radius) {
-                food[id] = foodItem.getFoodData();
+                food[foodItem.id] = foodItem.getFoodData();
             }
         }
+        
         return {
             players,
             food,
@@ -345,13 +346,11 @@ export class GameState {
     // Get all players for leaderboard (regardless of distance)
     getAllPlayersForLeaderboard(): any {
         const players: any = {};
-        
         for (const [id, snake] of this.players) {
             if (snake.alive) {
                 players[id] = snake.getPlayerData();
             }
         }
-        
         return {
             players,
             timestamp: Date.now()

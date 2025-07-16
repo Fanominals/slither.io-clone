@@ -5,6 +5,9 @@ import { Renderer } from './game/Renderer.js';
 import { ClientSnake } from './game/Snake.js';
 import { ClientFood } from './game/Food.js';
 import { PlayerData, FoodData, GAME_CONFIG } from '../common/constants.js';
+import { authService } from './auth/AuthService.js';
+import { LoginModal } from './auth/LoginModal.js';
+import { UsernameModal } from './auth/UsernameModal.js';
 
 class Game {
     private canvas!: HTMLCanvasElement;
@@ -46,6 +49,23 @@ class Game {
     private lastFpsUpdate: number = 0;
     private fps: number = 0;
     
+    // Authentication UI elements
+    private authContainer!: HTMLElement;
+    private userInfo!: HTMLElement;
+    private userAvatar!: HTMLImageElement;
+    private userName!: HTMLElement;
+    private signInButton!: HTMLButtonElement;
+    private signOutButton!: HTMLButtonElement;
+    private loginModal!: LoginModal;
+    private usernameModal!: UsernameModal;
+    
+    // New UI elements
+    private loginPrompt!: HTMLElement;
+    private savedIndicator!: HTMLElement;
+    private playButtonText!: HTMLElement;
+    private bettingOptions!: HTMLElement;
+    private selectedBetAmount: number = 1;
+    
     // Game state
     private currentNickname: string = '';
     private connected: boolean = false;
@@ -58,6 +78,7 @@ class Game {
         this.initializeComponents();
         this.setupEventListeners();
         this.setupNetworking();
+        this.updateAuthUI(); // Initialize auth UI
         this.startGameLoop();
     }
 
@@ -76,6 +97,24 @@ class Game {
         this.finalLength = document.getElementById('finalLength')!;
         this.leaderboardList = document.getElementById('leaderboardList')!;
         this.fpsCounter = document.getElementById('fpsCounter')!;
+        
+        // Authentication UI elements
+        this.authContainer = document.getElementById('authContainer')!;
+        this.userInfo = document.getElementById('userInfo')!;
+        this.userAvatar = document.getElementById('userAvatar') as HTMLImageElement;
+        this.userName = document.getElementById('userName')!;
+        this.signInButton = document.getElementById('signInButton') as HTMLButtonElement;
+        this.signOutButton = document.getElementById('signOutButton') as HTMLButtonElement;
+        
+        // New UI elements
+        this.loginPrompt = document.getElementById('loginPrompt')!;
+        this.savedIndicator = document.getElementById('savedIndicator')!;
+        this.playButtonText = document.getElementById('playButtonText')!;
+        this.bettingOptions = document.getElementById('bettingOptions')!;
+        
+        // Initialize modals
+        this.loginModal = new LoginModal();
+        this.usernameModal = new UsernameModal();
     }
 
     private initializeCanvas(): void {
@@ -101,9 +140,19 @@ class Game {
     }
 
     private setupEventListeners(): void {
-        // Play button
+        // Play button - now requires authentication and username
         this.playButton.addEventListener('click', () => {
-            this.startGame();
+            if (!authService.isAuthenticated()) {
+                this.loginModal.show(() => {
+                    this.updateAuthUI();
+                });
+            } else if (!authService.hasUsernameSet()) {
+                this.usernameModal.show((username) => {
+                    this.updateAuthUI();
+                });
+            } else {
+                this.startGame();
+            }
         });
 
         // Respawn button
@@ -120,6 +169,50 @@ class Game {
         this.nicknameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.startGame();
+            }
+        });
+
+        // Authentication event listeners
+        this.signInButton.addEventListener('click', () => {
+            this.loginModal.show(() => {
+                this.updateAuthUI();
+            });
+        });
+
+        this.signOutButton.addEventListener('click', async () => {
+            try {
+                await authService.signOut();
+                this.updateAuthUI();
+            } catch (error) {
+                console.error('Sign out failed:', error);
+            }
+        });
+
+        // Betting options event listeners
+        this.bettingOptions.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            if (target.classList.contains('bet-button')) {
+                // Remove selected class from all buttons
+                this.bettingOptions.querySelectorAll('.bet-button').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                // Add selected class to clicked button
+                target.classList.add('selected');
+                // Update selected bet amount
+                this.selectedBetAmount = parseInt(target.getAttribute('data-amount') || '1');
+            }
+        });
+
+        // Login prompt click
+        this.loginPrompt.addEventListener('click', () => {
+            if (!authService.isAuthenticated()) {
+                this.loginModal.show(() => {
+                    this.updateAuthUI();
+                });
+            } else if (!authService.hasUsernameSet()) {
+                this.usernameModal.show((username) => {
+                    this.updateAuthUI();
+                });
             }
         });
 
@@ -140,6 +233,11 @@ class Game {
                 this.showGameScreen();
                 this.gameRunning = true;
             }
+        });
+
+        // Setup authentication state listener
+        authService.onAuthStateChanged((user) => {
+            this.updateAuthUI();
         });
 
         this.socketManager.on('disconnected', () => {
@@ -305,14 +403,27 @@ class Game {
         if (currentTime - this.lastMoveTime < this.moveThrottle) return;
 
         const mousePos = this.input.getMousePosition();
-        const playerScreenPos = this.camera.worldToScreen(localPlayer.getHeadPosition());
+        const playerHeadPos = localPlayer.getHeadPosition();
         
-        const angle = Math.atan2(
-            mousePos.y - playerScreenPos.y,
-            mousePos.x - playerScreenPos.x
-        );
-
+        // Convert mouse position to world coordinates
+        const mouseWorldPos = this.camera.screenToWorld(mousePos);
+        
+        // Calculate distance from mouse to player head in world coordinates
+        const dx = mouseWorldPos.x - playerHeadPos.x;
+        const dy = mouseWorldPos.y - playerHeadPos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Calculate dynamic deadzone based on snake thickness (minimum 30, maximum 100)
+        const dynamicDeadzone = Math.max(30, Math.min(100, localPlayer.thickness * 1.5));
+        
+        // Check deadzone - don't send movement if mouse is too close
+        if (distance < dynamicDeadzone) {
+            return;
+        }
+        
+        const angle = Math.atan2(dy, dx);
         const isBoosting = this.input.isBoosting();
+        
         this.socketManager.sendPlayerMove(angle, isBoosting);
         this.lastMoveTime = currentTime;
     }
@@ -440,6 +551,118 @@ class Game {
         const localPlayer = this.getLocalPlayer();
         if (localPlayer) {
             this.lengthText.textContent = `Length: ${localPlayer.getCurrentLength()}`;
+        }
+    }
+
+    private forceUsernameRefresh(newUsername: string): void {
+        console.log('Force refreshing username to:', newUsername);
+        
+        // Update the login text immediately
+        const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
+        if (loginText) {
+            loginText.textContent = `Playing as: ${newUsername}`;
+            console.log('Updated login text to:', loginText.textContent);
+        } else {
+            console.error('Could not find login text element');
+        }
+        
+        // Update the nickname input for the game
+        if (this.nicknameInput) {
+            this.nicknameInput.value = newUsername;
+            console.log('Updated nickname input to:', this.nicknameInput.value);
+        } else {
+            console.error('Could not find nickname input element');
+        }
+        
+        // Force update the cached profile in AuthService
+        authService.updateCachedUsername(newUsername);
+        
+        console.log('Username display force updated successfully');
+    }
+
+    private setupUsernameClickHandler(): void {
+        const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
+        
+        // Remove any existing click handlers by removing and re-adding the class
+        loginText.onclick = null;
+        
+        // Add new click handler
+        loginText.onclick = () => {
+            this.usernameModal.show((username) => {
+                console.log('Username callback called with:', username);
+                
+                // Immediately update the display with the new username
+                this.forceUsernameRefresh(username);
+                
+                console.log('Username display forcefully updated to:', username);
+            });
+        };
+    }
+
+    private updateAuthUI(): void {
+        const user = authService.getCurrentUser();
+        const userProfile = authService.getUserProfile();
+
+        if (user && userProfile) {
+            // User is signed in
+            this.signInButton.classList.add('hidden');
+            this.signOutButton.classList.remove('hidden');
+            this.userInfo.classList.remove('hidden');
+
+            // Update user info
+            this.userName.textContent = userProfile.displayName || user.email || 'User';
+            this.userAvatar.src = userProfile.photoURL || '';
+            this.userAvatar.alt = userProfile.displayName || 'User Avatar';
+
+            if (authService.hasUsernameSet()) {
+                // User has username set - ready to play
+                this.savedIndicator.classList.remove('hidden');
+                this.playButton.classList.remove('disabled');
+                this.playButtonText.textContent = 'Play';
+                this.playButton.querySelector('.play-icon')!.textContent = '🎮';
+                
+                // Update login prompt text and make it clickable
+                const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
+                loginText.textContent = `Playing as: ${userProfile.username}`;
+                loginText.classList.add('clickable-username');
+                
+                // Only setup click handler if it's not already set up
+                if (!loginText.onclick) {
+                    this.setupUsernameClickHandler();
+                }
+
+                // Pre-fill nickname with username for game
+                if (userProfile.username) {
+                    this.nicknameInput.value = userProfile.username;
+                }
+            } else {
+                // User signed in but needs to set username
+                this.savedIndicator.classList.add('hidden');
+                this.playButton.classList.add('disabled');
+                this.playButtonText.textContent = 'Set Username to Play';
+                this.playButton.querySelector('.play-icon')!.textContent = '📝';
+                
+                // Update login prompt text
+                const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
+                loginText.textContent = 'Set your username to play';
+                loginText.classList.remove('clickable-username');
+            }
+        } else {
+            // User is signed out
+            this.signInButton.classList.remove('hidden');
+            this.signOutButton.classList.add('hidden');
+            this.userInfo.classList.add('hidden');
+
+            // Update new UI elements for signed-out state
+            this.savedIndicator.classList.add('hidden');
+            this.playButton.classList.add('disabled');
+            this.playButtonText.textContent = 'Login to Play';
+            this.playButton.querySelector('.play-icon')!.textContent = '🔒';
+            
+            // Reset login prompt text
+            const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
+            loginText.textContent = 'Login to set your name';
+            loginText.classList.remove('clickable-username');
         }
     }
 

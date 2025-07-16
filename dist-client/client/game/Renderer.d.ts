@@ -17,6 +17,7 @@ export declare class Renderer {
     drawWorldBoundaries(): void;
     drawSnake(snake: ClientSnake): void;
     private drawSnakeEyes;
+    private drawBoostTrail;
     private drawSnakeName;
     drawFood(food: ClientFood): void;
     drawUI(localPlayer: ClientSnake | null): void;

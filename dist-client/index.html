@@ -9,13 +9,51 @@
 <body>
     <!-- Menu Screen -->
     <div id="menu" class="screen">
+        <!-- Authentication UI -->
+        <div class="auth-container" id="authContainer">
+            <div class="user-info hidden" id="userInfo">
+                <img class="user-avatar" id="userAvatar" src="" alt="User Avatar">
+                <span class="user-name" id="userName"></span>
+            </div>
+            <button class="auth-button signin-button" id="signInButton">
+                <span>🔑</span>
+                <span>Sign In</span>
+            </button>
+            <button class="auth-button signout-button hidden" id="signOutButton">
+                <span>🚪</span>
+                <span>Sign Out</span>
+            </button>
+        </div>
+        
         <div class="menu-container">
-            <h1 class="game-title">slither.io</h1>
-            <p class="game-subtitle">Don't run into other players!</p>
+            <h1 class="game-title">DAMN<span class="title-highlight">BRUH</span><span class="alpha-tag">ALPHA</span></h1>
+            <p class="game-subtitle">Outlast opponents. Cash out anytime.</p>
             
-            <div class="input-container">
+            <div class="login-prompt" id="loginPrompt">
+                <span class="login-text">Login to set your name</span>
+                <span class="saved-indicator" id="savedIndicator">✓ Saved</span>
+            </div>
+            
+            <div class="betting-options" id="bettingOptions">
+                <button class="bet-button selected" data-amount="1">$1</button>
+                <button class="bet-button" data-amount="5">$5</button>
+                <button class="bet-button" data-amount="20">$20</button>
+            </div>
+            
+            <div class="play-container">
+                <button id="playButton" class="main-play-button disabled">
+                    <span class="play-icon">🔧</span>
+                    <span class="play-text" id="playButtonText">Login to Play</span>
+                </button>
+                <div class="maintenance-notice hidden" id="maintenanceNotice">
+                    <span class="maintenance-icon">🔧</span>
+                    <span>Under Maintenance</span>
+                </div>
+            </div>
+            
+            <!-- Hidden original elements for backward compatibility -->
+            <div class="hidden">
                 <input type="text" id="nickname" placeholder="Nickname" maxlength="20" autocomplete="off">
-                <button id="playButton" class="play-button">Play</button>
             </div>
         </div>
     </div>
@@ -92,6 +130,29 @@
     <script type="module">
         // Make socket.io available globally for ES6 modules
         window.io = io;
+    </script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Make Firebase available globally for ES6 modules
+        window.Firebase = { 
+            initializeApp, 
+            getAuth, 
+            getFirestore, 
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged,
+            doc,
+            setDoc,
+            getDoc,
+            updateDoc,
+            deleteDoc
+        };
     </script>
     <script type="module" src="client/main.js"></script>
 </body>

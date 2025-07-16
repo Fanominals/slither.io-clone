@@ -194,6 +194,26 @@ export class Renderer {
         // Enable better anti-aliasing for smoother rendering
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
+        // Draw polyline glow for the whole body if boosting
+        if (snake.isBoosting && segments.length > 1) {
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.moveTo(segments[0].x, segments[0].y);
+            for (let i = 1; i < segments.length; i++) {
+                this.ctx.lineTo(segments[i].x, segments[i].y);
+            }
+            const maxRadius = Math.max(...segments.map(s => s.radius));
+            const lineWidth = Math.max(maxRadius * 2.5, 16);
+            this.ctx.strokeStyle = 'rgba(120,180,255,0.22)';
+            this.ctx.lineWidth = lineWidth;
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            this.ctx.shadowColor = 'rgba(120,180,255,0.45)';
+            this.ctx.shadowBlur = lineWidth * 0.7;
+            this.ctx.globalAlpha = 1.0;
+            this.ctx.stroke();
+            this.ctx.restore();
+        }
         // Draw body segments
         for (let i = segments.length - 1; i >= 0; i--) {
             const segment = segments[i];
@@ -256,6 +276,33 @@ export class Renderer {
         this.ctx.beginPath();
         this.ctx.arc(headSegment.x + eyeOffsetX - perpX, headSegment.y + eyeOffsetY - perpY, pupilSize, 0, Math.PI * 2);
         this.ctx.fill();
+    }
+    // Draw boost trail effect
+    drawBoostTrail(segments, color) {
+        if (segments.length < 2)
+            return;
+        // Create gradient for boost trail
+        const headSegment = segments[0];
+        const tailSegment = segments[segments.length - 1];
+        const gradient = this.ctx.createLinearGradient(headSegment.x, headSegment.y, tailSegment.x, tailSegment.y);
+        // Convert hex color to RGB for trail effect
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.6)`);
+        gradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, 0.3)`);
+        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        this.ctx.strokeStyle = gradient;
+        this.ctx.lineWidth = 8;
+        this.ctx.lineCap = 'round';
+        // Draw trail along snake body
+        this.ctx.beginPath();
+        this.ctx.moveTo(segments[0].x, segments[0].y);
+        for (let i = 1; i < segments.length; i++) {
+            this.ctx.lineTo(segments[i].x, segments[i].y);
+        }
+        this.ctx.stroke();
     }
     // Draw snake name and score
     drawSnakeName(snake) {

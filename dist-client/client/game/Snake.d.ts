@@ -10,6 +10,7 @@ export declare class ClientSnake {
     thickness: number;
     segments: SnakeSegment[];
     alive: boolean;
+    isBoosting: boolean;
     isLocalPlayer: boolean;
     private previousX;
     private previousY;
@@ -30,4 +31,5 @@ export declare class ClientSnake {
     getCurrentLength(): number;
     getDisplayName(): string;
     getTotalLength(): number;
+    canBoost(): boolean;
 }

@@ -1,20 +1,20 @@
 // Game Configuration Constants
 export const GAME_CONFIG = {
-    WORLD_WIDTH: 4000,
-    WORLD_HEIGHT: 4000,
+    WORLD_WIDTH: 8000,
+    WORLD_HEIGHT: 8000,
     INITIAL_SNAKE_LENGTH: 10,
     INITIAL_SNAKE_THICKNESS: 40,
     SNAKE_SPEED: 200, // pixels per second
-    SNAKE_BOOST_SPEED: 350, // boost speed in pixels per second
+    SNAKE_BOOST_SPEED: 400, // boost speed in pixels per second
     FOOD_SIZE: 8,
     FOOD_ATTRACTION_RADIUS: 50, // Radius where food starts gravitating towards snake head  
     FOOD_CONSUMPTION_DISTANCE: 8, // Distance at which food gets consumed (much smaller)
-    FOOD_COUNT: 800,
+    FOOD_DENSITY: 0.00005, // Number of food particles per world unit squared
     GRID_SIZE: 80,
     TICK_RATE: 60, // server updates per second (increased from 30 to 60)
     CAMERA_SMOOTH_FACTOR: 0.25, // Increased from 0.15 for more responsive camera
-    ZOOM_MIN: 0.5,
-    ZOOM_MAX: 0.75,
+    ZOOM_MIN: 0.75,
+    ZOOM_MAX: 1,
     ZOOM_SCALE_FACTOR: 0.8, // How much zoom changes with snake size
     THICKNESS_SCALE_FACTOR: 0.075, // How much thickness increases with length (0.1 = 10% of length)
     VISUAL_LENGTH_FACTOR: 0.4, // How long the snake appears visually (1.0 = 1 segment per length unit)
@@ -24,8 +24,12 @@ export const GAME_CONFIG = {
     INTERPOLATION_FACTOR: 0.08, // Reduced from 0.15 for smoother interpolation
     BORDER_WIDTH: 50, // Width of the red kill border
     SNAKE_TURN_RATE: 3.5, // radians per second
-    PLAYER_VIEW_RADIUS: 1000, // Only send entities within this radius of the player's head
-    BOT_COUNT: 10, // Number of AI bots to spawn for testing
+    PLAYER_VIEW_RADIUS: 2000, // Half of typical max viewport width (1600) plus buffer
+    BOT_COUNT: 1, // Number of AI bots to spawn for testing
+    SPATIAL_GRID_CELL_SIZE: 500, // Cell size for spatial grid, tuned for 1000px view radius
+    SNAKE_SPAWN_MIN_DIST: 200, // Minimum distance from any snake head for spawning
+    BOOST_LENGTH_LOSS_PER_SEC: 5, // How much length is lost per second while boosting
+    INPUT_DEADZONE: 30, // Minimum distance from snake head to mouse for movement input (fallback value)
 };
 // Socket.IO Event Names
 export const SOCKET_EVENTS = {
@@ -77,5 +81,8 @@ export function clamp(value, min, max) {
 }
 export function lerp(a, b, t) {
     return a + (b - a) * t;
+}
+export function getFoodCount() {
+    return Math.floor(GAME_CONFIG.WORLD_WIDTH * GAME_CONFIG.WORLD_HEIGHT * GAME_CONFIG.FOOD_DENSITY);
 }
 //# sourceMappingURL=constants.js.map
