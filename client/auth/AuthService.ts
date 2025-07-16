@@ -38,6 +38,13 @@ export interface UserProfile {
     bestLength: number;
     totalEliminations: number;
   };
+  // Wallet-related fields
+  walletAddress?: string;
+  walletIntegrated?: boolean;
+  walletIntegratedAt?: Date;
+  solBalance?: number;
+  lastBalanceUpdate?: Date;
+  lastSolPrice?: number;
 }
 
 export class AuthService {

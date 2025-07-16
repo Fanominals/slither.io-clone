@@ -1,4 +1,4 @@
-// Use global Firebase object from CDN
+// Use global Firebase and Solana objects from CDN
 declare global {
     interface Window {
         Firebase: {
@@ -14,6 +14,11 @@ declare global {
             getDoc: any;
             updateDoc: any;
             deleteDoc: any;
+        };
+        Solana: {
+            Connection: any;
+            PublicKey: any;
+            LAMPORTS_PER_SOL: number;
         };
     }
 }

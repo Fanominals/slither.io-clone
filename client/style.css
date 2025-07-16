@@ -1190,4 +1190,373 @@ body::before {
         right: 10px;
         bottom: 10px;
     }
+}
+
+/* Add Funds Modal Styles */
+.add-funds-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-funds-modal.hidden {
+    display: none;
+}
+
+.add-funds-modal .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.add-funds-modal .modal-content {
+    position: relative;
+    background: #1e1e1e;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 450px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333;
+}
+
+.add-funds-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #333;
+}
+
+.add-funds-modal .modal-header h2 {
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.add-funds-modal .close-button {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.add-funds-modal .close-button:hover {
+    background: #333;
+    color: #fff;
+}
+
+.add-funds-modal .qr-section {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.add-funds-modal .qr-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.add-funds-modal .qr-code-placeholder {
+    width: 200px;
+    height: 200px;
+    background: #fff;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    border: 2px solid #ffd700;
+}
+
+.add-funds-modal .qr-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #333;
+}
+
+.add-funds-modal .qr-dots {
+    width: 100px;
+    height: 100px;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="0" y="0" width="20" height="20" fill="%23000"/><rect x="40" y="0" width="20" height="20" fill="%23000"/><rect x="80" y="0" width="20" height="20" fill="%23000"/><rect x="0" y="40" width="20" height="20" fill="%23000"/><rect x="80" y="40" width="20" height="20" fill="%23000"/><rect x="0" y="80" width="20" height="20" fill="%23000"/><rect x="40" y="80" width="20" height="20" fill="%23000"/><rect x="80" y="80" width="20" height="20" fill="%23000"/></svg>') no-repeat center;
+    background-size: contain;
+    margin-bottom: 10px;
+}
+
+.add-funds-modal .qr-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.add-funds-modal .qr-info h3 {
+    color: #fff;
+    font-size: 1.2rem;
+    margin: 0 0 5px 0;
+}
+
+.add-funds-modal .qr-info p {
+    color: #b8b8b8;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.add-funds-modal .wallet-address-section {
+    margin-bottom: 25px;
+}
+
+.add-funds-modal .wallet-address-section label {
+    display: block;
+    color: #b8b8b8;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.add-funds-modal .address-container {
+    display: flex;
+    align-items: center;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 12px 15px;
+    gap: 10px;
+}
+
+.add-funds-modal .wallet-address {
+    color: #ffd700;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    flex: 1;
+    user-select: all;
+}
+
+.add-funds-modal .copy-button {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+}
+
+.add-funds-modal .copy-button:hover {
+    background: #444;
+    color: #fff;
+}
+
+.add-funds-modal .balance-section {
+    margin-bottom: 25px;
+    background: #2a2a2a;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #444;
+}
+
+.add-funds-modal .balance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.add-funds-modal .balance-item:last-child {
+    margin-bottom: 0;
+}
+
+.add-funds-modal .balance-label {
+    color: #b8b8b8;
+    font-size: 0.9rem;
+}
+
+.add-funds-modal .balance-value {
+    color: #ffd700;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+.add-funds-modal .instructions {
+    color: #b8b8b8;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.add-funds-modal .instructions p {
+    margin: 0 0 15px 0;
+}
+
+.add-funds-modal .warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.85rem;
+}
+
+.add-funds-modal .warning-icon {
+    color: #ffc107;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.add-funds-modal .warning span:last-child {
+    color: #e6e6e6;
+}
+
+/* Wallet Balance Display Styles */
+.wallet-balance-container {
+    margin-bottom: 25px;
+}
+
+.wallet-balance {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+}
+
+.wallet-balance .balance-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.wallet-balance .balance-icon {
+    font-size: 1.2rem;
+}
+
+.wallet-balance .balance-title {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.wallet-balance .refresh-balance-btn {
+    position: absolute;
+    right: 0;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.wallet-balance .refresh-balance-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffd700;
+    transform: rotate(180deg);
+}
+
+.wallet-balance .balance-amounts {
+    margin-bottom: 20px;
+}
+
+.wallet-balance .sol-balance {
+    margin-bottom: 5px;
+}
+
+.wallet-balance .sol-balance span {
+    color: #ffd700;
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+.wallet-balance .usd-balance span {
+    color: #b8b8b8;
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+}
+
+.wallet-balance .wallet-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.wallet-balance .add-funds-btn,
+.wallet-balance .cash-out-btn {
+    flex: 1;
+    max-width: 120px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.wallet-balance .add-funds-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+}
+
+.wallet-balance .add-funds-btn:hover {
+    background: linear-gradient(135deg, #45a049, #3d8b40);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.wallet-balance .cash-out-btn {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+    color: white;
+}
+
+.wallet-balance .cash-out-btn:hover:not(.disabled) {
+    background: linear-gradient(135deg, #d32f2f, #b71c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.wallet-balance .cash-out-btn.disabled {
+    background: #444;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.wallet-balance .add-funds-icon,
+.wallet-balance .cash-out-icon {
+    font-size: 1rem;
 } 

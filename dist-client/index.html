@@ -29,6 +29,35 @@
             <h1 class="game-title">DAMN<span class="title-highlight">BRUH</span><span class="alpha-tag">ALPHA</span></h1>
             <p class="game-subtitle">Outlast opponents. Cash out anytime.</p>
             
+            <!-- Wallet Balance Display -->
+            <div class="wallet-balance-container hidden" id="walletBalanceContainer">
+                <div class="wallet-balance">
+                    <div class="balance-header">
+                        <span class="balance-icon">💰</span>
+                        <span class="balance-title">Wallet Balance</span>
+                        <button class="refresh-balance-btn" id="refreshBalanceBtn" title="Refresh Balance">🔄</button>
+                    </div>
+                    <div class="balance-amounts">
+                        <div class="sol-balance">
+                            <span id="solBalance">0.0000 SOL</span>
+                        </div>
+                        <div class="usd-balance">
+                            <span id="usdBalance">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="wallet-actions">
+                        <button class="add-funds-btn" id="addFundsBtn">
+                            <span class="add-funds-icon">⬇</span>
+                            <span>Add Funds</span>
+                        </button>
+                        <button class="cash-out-btn disabled" id="cashOutBtn">
+                            <span class="cash-out-icon">⬆</span>
+                            <span>Cash Out</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
             <div class="login-prompt" id="loginPrompt">
                 <span class="login-text">Login to set your name</span>
                 <span class="saved-indicator" id="savedIndicator">✓ Saved</span>
@@ -131,6 +160,15 @@
         // Make socket.io available globally for ES6 modules
         window.io = io;
     </script>
+    <!-- Solana Web3.js SDK -->
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script type="module">
+        // Make Solana web3.js available globally for ES6 modules
+        window.Solana = window.solanaWeb3;
+    </script>
+    
+    <!-- We'll implement Privy via REST API instead of SDK -->
+    
     <!-- Firebase SDK -->
     <script type="module">
         // Import the functions you need from the SDKs you need
@@ -153,6 +191,9 @@
             updateDoc,
             deleteDoc
         };
+        
+        // Make Privy available globally
+        window.Privy = window.PrivyReactAuth;
     </script>
     <script type="module" src="client/main.js"></script>
 </body>

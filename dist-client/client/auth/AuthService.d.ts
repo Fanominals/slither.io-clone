@@ -22,6 +22,12 @@ export interface UserProfile {
         bestLength: number;
         totalEliminations: number;
     };
+    walletAddress?: string;
+    walletIntegrated?: boolean;
+    walletIntegratedAt?: Date;
+    solBalance?: number;
+    lastBalanceUpdate?: Date;
+    lastSolPrice?: number;
 }
 export declare class AuthService {
     private currentUser;

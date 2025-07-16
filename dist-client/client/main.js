@@ -7,6 +7,10 @@ import { ClientFood } from './game/Food.js';
 import { authService } from './auth/AuthService.js';
 import { LoginModal } from './auth/LoginModal.js';
 import { UsernameModal } from './auth/UsernameModal.js';
+import { privyIntegrationService } from './auth/PrivyIntegrationService.js';
+import { privyApiClient } from './auth/PrivyApiClient.js';
+import { AddFundsModal } from './wallet/AddFundsModal.js';
+import { walletService } from './wallet/WalletService.js';
 class Game {
     constructor() {
         // Game state
@@ -35,6 +39,7 @@ class Game {
         this.initializeComponents();
         this.setupEventListeners();
         this.setupNetworking();
+        this.initializePrivy(); // Initialize Privy authentication
         this.updateAuthUI(); // Initialize auth UI
         this.startGameLoop();
     }
@@ -65,9 +70,17 @@ class Game {
         this.savedIndicator = document.getElementById('savedIndicator');
         this.playButtonText = document.getElementById('playButtonText');
         this.bettingOptions = document.getElementById('bettingOptions');
+        // Wallet UI elements
+        this.walletBalanceContainer = document.getElementById('walletBalanceContainer');
+        this.solBalanceDisplay = document.getElementById('solBalance');
+        this.usdBalanceDisplay = document.getElementById('usdBalance');
+        this.addFundsButton = document.getElementById('addFundsBtn');
+        this.cashOutButton = document.getElementById('cashOutBtn');
+        this.refreshBalanceButton = document.getElementById('refreshBalanceBtn');
         // Initialize modals
         this.loginModal = new LoginModal();
         this.usernameModal = new UsernameModal();
+        this.addFundsModal = new AddFundsModal();
     }
     initializeCanvas() {
         this.canvas = document.getElementById('gameCanvas');
@@ -87,9 +100,27 @@ class Game {
         this.renderer = new Renderer(this.canvas, this.camera);
         this.socketManager = new SocketManager();
     }
+    async initializePrivy() {
+        try {
+            console.log('🚀 Initializing Privy...');
+            // Check if user has existing Privy session
+            if (privyApiClient.isAuthenticated()) {
+                const user = privyApiClient.getCurrentUser();
+                if (user && user.embedded_wallets?.[0]?.address) {
+                    console.log('🔄 Restoring Privy session for user:', user.id);
+                    await privyIntegrationService.initializeIntegration(user);
+                }
+            }
+            console.log('✅ Privy API client ready');
+        }
+        catch (error) {
+            console.error('❌ Failed to initialize Privy:', error);
+            console.warn('🔄 Falling back to Firebase-only authentication');
+        }
+    }
     setupEventListeners() {
         // Play button - now requires authentication and username
-        this.playButton.addEventListener('click', () => {
+        this.playButton.addEventListener('click', async () => {
             if (!authService.isAuthenticated()) {
                 this.loginModal.show(() => {
                     this.updateAuthUI();
@@ -101,7 +132,7 @@ class Game {
                 });
             }
             else {
-                this.startGame();
+                await this.startGame();
             }
         });
         // Respawn button
@@ -119,13 +150,39 @@ class Game {
             }
         });
         // Authentication event listeners
-        this.signInButton.addEventListener('click', () => {
-            this.loginModal.show(() => {
+        this.signInButton.addEventListener('click', async () => {
+            try {
+                if (privyApiClient.isReady()) {
+                    // Use Privy for authentication
+                    const user = await privyApiClient.login();
+                    if (user) {
+                        // Initialize integration with the Privy user
+                        await privyIntegrationService.initializeIntegration(user);
+                    }
+                }
+                else {
+                    // Fallback to Firebase if Privy isn't ready
+                    this.loginModal.show(() => {
+                        this.updateAuthUI();
+                    });
+                }
                 this.updateAuthUI();
-            });
+            }
+            catch (error) {
+                console.error('Sign in failed:', error);
+                // Fallback to Firebase on error
+                this.loginModal.show(() => {
+                    this.updateAuthUI();
+                });
+            }
         });
         this.signOutButton.addEventListener('click', async () => {
             try {
+                // Sign out from both Privy and Firebase
+                if (privyApiClient.isAuthenticated()) {
+                    await privyApiClient.logout();
+                    privyIntegrationService.resetIntegration();
+                }
                 await authService.signOut();
                 this.updateAuthUI();
             }
@@ -160,6 +217,19 @@ class Game {
                 });
             }
         });
+        // Wallet event listeners
+        this.addFundsButton.addEventListener('click', () => {
+            this.addFundsModal.show();
+        });
+        this.cashOutButton.addEventListener('click', () => {
+            // TODO: Implement cash out functionality
+            console.log('Cash out clicked');
+        });
+        this.refreshBalanceButton.addEventListener('click', () => {
+            this.refreshWalletBalance();
+        });
+        // Setup wallet balance monitoring
+        this.setupWalletMonitoring();
         // Prevent context menu on canvas
         this.canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -211,10 +281,23 @@ class Game {
             this.handleFoodEaten(data);
         });
     }
-    startGame() {
+    async startGame() {
         const nickname = this.nicknameInput.value.trim();
         if (!nickname) {
             this.nicknameInput.focus();
+            return;
+        }
+        // Check if user has sufficient balance
+        if (!privyIntegrationService.canAffordGame()) {
+            // Show insufficient balance message
+            alert('Insufficient balance! Please add funds to play.');
+            this.addFundsModal.show();
+            return;
+        }
+        // Deduct game cost before starting
+        const paymentSuccess = await privyIntegrationService.deductGameCost();
+        if (!paymentSuccess) {
+            alert('Payment failed! Please try again.');
             return;
         }
         this.currentNickname = nickname;
@@ -482,16 +565,26 @@ class Game {
     updateAuthUI() {
         const user = authService.getCurrentUser();
         const userProfile = authService.getUserProfile();
-        if (user && userProfile) {
+        const privyUser = privyApiClient.getCurrentUser();
+        const isAuthenticated = authService.isAuthenticated() || privyApiClient.isAuthenticated();
+        if ((user && userProfile) || privyUser) {
             // User is signed in
             this.signInButton.classList.add('hidden');
             this.signOutButton.classList.remove('hidden');
             this.userInfo.classList.remove('hidden');
-            // Update user info
-            this.userName.textContent = userProfile.displayName || user.email || 'User';
-            this.userAvatar.src = userProfile.photoURL || '';
-            this.userAvatar.alt = userProfile.displayName || 'User Avatar';
-            if (authService.hasUsernameSet()) {
+            // Update user info - prioritize Firebase data if available, fallback to Privy
+            if (user && userProfile) {
+                this.userName.textContent = userProfile.displayName || user.email || 'User';
+                this.userAvatar.src = userProfile.photoURL || '';
+                this.userAvatar.alt = userProfile.displayName || 'User Avatar';
+            }
+            else if (privyUser) {
+                // Privy user without Firebase profile
+                this.userName.textContent = privyUser.id || 'User';
+                this.userAvatar.src = '';
+                this.userAvatar.alt = 'User Avatar';
+            }
+            if (userProfile && authService.hasUsernameSet()) {
                 // User has username set - ready to play
                 this.savedIndicator.classList.remove('hidden');
                 this.playButton.classList.remove('disabled');
@@ -510,15 +603,31 @@ class Game {
                     this.nicknameInput.value = userProfile.username;
                 }
             }
-            else {
-                // User signed in but needs to set username
-                this.savedIndicator.classList.add('hidden');
-                this.playButton.classList.add('disabled');
-                this.playButtonText.textContent = 'Set Username to Play';
-                this.playButton.querySelector('.play-icon').textContent = '📝';
+            else if (privyUser && privyIntegrationService.isFullyIntegrated()) {
+                // Privy user is fully integrated (has wallet)
+                this.savedIndicator.classList.remove('hidden');
+                this.playButton.classList.remove('disabled');
+                this.playButtonText.textContent = 'Play';
+                this.playButton.querySelector('.play-icon').textContent = '🎮';
                 // Update login prompt text
                 const loginText = this.loginPrompt.querySelector('.login-text');
-                loginText.textContent = 'Set your username to play';
+                loginText.textContent = `Playing with wallet: ${privyUser.embedded_wallets?.[0]?.address?.slice(0, 8)}...`;
+                loginText.classList.add('clickable-username');
+                // Pre-fill nickname with wallet address (shortened)
+                const walletAddress = privyUser.embedded_wallets?.[0]?.address;
+                if (walletAddress) {
+                    this.nicknameInput.value = `Player-${walletAddress.slice(-6)}`;
+                }
+            }
+            else {
+                // User signed in but needs to set username or get wallet
+                this.savedIndicator.classList.add('hidden');
+                this.playButton.classList.add('disabled');
+                this.playButtonText.textContent = userProfile ? 'Set Username to Play' : 'Creating Wallet...';
+                this.playButton.querySelector('.play-icon').textContent = userProfile ? '📝' : '💼';
+                // Update login prompt text
+                const loginText = this.loginPrompt.querySelector('.login-text');
+                loginText.textContent = userProfile ? 'Set your username to play' : 'Setting up your wallet...';
                 loginText.classList.remove('clickable-username');
             }
         }
@@ -537,6 +646,8 @@ class Game {
             loginText.textContent = 'Login to set your name';
             loginText.classList.remove('clickable-username');
         }
+        // Update wallet UI based on integration status
+        this.updateWalletUI();
     }
     updateLeaderboard() {
         // Use leaderboard players data (all players) instead of visible players
@@ -626,6 +737,67 @@ class Game {
         if (currentTime - this.lastFpsUpdate > 200) {
             this.fpsCounter.textContent = `FPS: ${this.fps}`;
             this.lastFpsUpdate = currentTime;
+        }
+    }
+    // Wallet-related methods
+    async refreshWalletBalance() {
+        // Add visual feedback for refresh
+        this.refreshBalanceButton.style.transform = 'rotate(180deg)';
+        try {
+            // Force update wallet balance from blockchain
+            const walletData = privyIntegrationService.getWalletData();
+            if (walletData) {
+                // The wallet service will automatically detect balance changes
+                console.log('Refreshing wallet balance...');
+            }
+        }
+        catch (error) {
+            console.error('Error refreshing balance:', error);
+        }
+        finally {
+            // Reset button animation
+            setTimeout(() => {
+                this.refreshBalanceButton.style.transform = '';
+            }, 500);
+        }
+    }
+    setupWalletMonitoring() {
+        // Listen for integration changes
+        privyIntegrationService.onIntegrationChange((integrated) => {
+            this.updateWalletUI();
+        });
+        // Listen for balance changes
+        walletService.onBalanceChange((balance) => {
+            this.updateBalanceDisplay(balance);
+        });
+    }
+    updateWalletUI() {
+        const isIntegrated = privyIntegrationService.isFullyIntegrated();
+        if (isIntegrated) {
+            this.walletBalanceContainer.classList.remove('hidden');
+            this.updateBalanceDisplay();
+        }
+        else {
+            this.walletBalanceContainer.classList.add('hidden');
+        }
+    }
+    updateBalanceDisplay(balance) {
+        const currentBalance = balance || privyIntegrationService.getBalance();
+        if (currentBalance) {
+            this.solBalanceDisplay.textContent = `${currentBalance.sol.toFixed(4)} SOL`;
+            this.usdBalanceDisplay.textContent = `$${currentBalance.usd.toFixed(2)}`;
+            // Update cash out button state
+            if (currentBalance.sol > 0) {
+                this.cashOutButton.classList.remove('disabled');
+            }
+            else {
+                this.cashOutButton.classList.add('disabled');
+            }
+        }
+        else {
+            this.solBalanceDisplay.textContent = '0.0000 SOL';
+            this.usdBalanceDisplay.textContent = '$0.00';
+            this.cashOutButton.classList.add('disabled');
         }
     }
 }

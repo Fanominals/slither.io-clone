@@ -14,6 +14,11 @@ declare global {
             updateDoc: any;
             deleteDoc: any;
         };
+        Solana: {
+            Connection: any;
+            PublicKey: any;
+            LAMPORTS_PER_SOL: number;
+        };
     }
 }
 declare const signInWithPopup: any, signOut: any, onAuthStateChanged: any, doc: any, setDoc: any, getDoc: any, updateDoc: any, deleteDoc: any;
