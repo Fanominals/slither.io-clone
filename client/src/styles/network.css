@@ -1,0 +1,32 @@
+/* Network Badge Styles */
+.network-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-left: 8px;
+  letter-spacing: 0.5px;
+}
+
+.network-badge.devnet {
+  background-color: #ff9500;
+  color: white;
+  box-shadow: 0 1px 3px rgba(255, 149, 0, 0.3);
+}
+
+.network-badge.mainnet {
+  background-color: #00d68f;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 214, 143, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .network-badge {
+    padding: 1px 6px;
+    font-size: 9px;
+    margin-left: 4px;
+  }
+} 

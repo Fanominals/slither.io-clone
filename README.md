@@ -159,3 +159,43 @@ This project is for educational purposes. Please respect the original Slither.io
 - Edge
 
 Requires modern JavaScript features (ES6+) and WebSocket support. 
+
+## Authentication & Database Setup
+
+### Privy Authentication
+This project uses [Privy.io](https://privy.io) for user authentication with support for:
+- Email authentication with OTP
+- Google OAuth login
+- Secure user session management
+
+### Environment Configuration
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Privy Configuration
+VITE_PRIVY_APP_ID=your_privy_app_id_here
+
+# Supabase Configuration  
+VITE_SUPABASE_URL=your_supabase_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+```
+
+### Database Setup (Supabase)
+1. Create a new Supabase project at [supabase.com](https://supabase.com)
+2. Run the SQL schema located in `database/schema.sql` in your Supabase SQL editor
+3. Configure your environment variables with your Supabase project details
+
+The database schema includes:
+- **user_profiles**: Core user information synced from Privy
+- **user_game_stats**: Aggregated game statistics
+- **game_sessions**: Individual game session tracking
+- **user_achievements**: Achievement system (prepared for future features)
+- **user_settings**: User preferences
+- **leaderboard_entries**: Leaderboard system
+
+### Authentication Flow
+1. User clicks "Log In" on the menu screen
+2. Privy modal opens with email/Google OAuth options  
+3. Upon successful authentication, user data is synced to Supabase
+4. User can play with their authenticated profile
+5. Game statistics and progress are tracked in the database 

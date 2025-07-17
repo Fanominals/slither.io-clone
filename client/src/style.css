@@ -75,15 +75,17 @@ html, body {
 }
 
 .input-container input {
-    padding: 1rem;
-    font-size: 1.1rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
+    border-radius: 6px;
     background: rgba(255, 255, 255, 0.1);
     color: white;
     text-align: center;
     backdrop-filter: blur(5px);
     transition: all 0.3s ease;
+    height: 48px;
+    box-sizing: border-box;
 }
 
 .input-container input::placeholder {
@@ -97,22 +99,528 @@ html, body {
 }
 
 .play-button {
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
     font-weight: bold;
     background: linear-gradient(45deg, #4ECDC4, #44A08D);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    height: 48px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .play-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+}
+
+.play-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Username Section Styles */
+.username-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.username-input-container {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    width: 100%;
+}
+
+.username-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    height: 48px;
+    box-sizing: border-box;
+}
+
+.username-input.checking {
+    border-color: #ffa500;
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
+}
+
+.username-input.valid {
+    border-color: #4ECDC4;
+    box-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
+}
+
+.username-input.invalid {
+    border-color: #ff6b6b;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+}
+
+.save-username-button {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: linear-gradient(45deg, #4ECDC4, #44A08D);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 120px;
+    height: 48px;
+    justify-content: center;
+    box-sizing: border-box;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.save-username-button:hover:not(:disabled):not(.disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(78, 205, 196, 0.4);
+}
+
+.save-username-button:disabled,
+.save-username-button.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.save-username-button.saved {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+}
+
+.save-username-button:not(.disabled):not(:disabled):not(.saved) {
+    background: linear-gradient(45deg, #4ECDC4, #44A08D);
+    color: white;
+}
+
+/* Username Validation Feedback */
+.username-error,
+.username-checking,
+.username-valid,
+.username-current {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.username-error {
+    background: rgba(255, 107, 107, 0.1);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.username-checking {
+    background: rgba(255, 165, 0, 0.1);
+    color: #ffa500;
+    border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.username-valid {
+    background: rgba(78, 205, 196, 0.1);
+    color: #4ECDC4;
+    border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.username-current {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Loading spinner for username validation */
+.loading-spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.checkmark {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Nickname input (for non-authenticated users) */
+.nickname-input {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 6px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    text-align: center !important;
+    backdrop-filter: blur(5px) !important;
+    transition: all 0.3s ease !important;
+    height: 48px !important;
+    box-sizing: border-box !important;
+}
+
+.nickname-input::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.nickname-input:focus {
+    outline: none !important;
+    border-color: #4ECDC4 !important;
+    box-shadow: 0 0 15px rgba(78, 205, 196, 0.3) !important;
+}
+
+/* Authentication Section - Top Right */
+.auth-section-top-right {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.login-button-top-right {
+    padding: 10px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(78, 205, 196, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+}
+
+.login-button-top-right:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(78, 205, 196, 0.6);
+    background: linear-gradient(45deg, #45b7d1, #3d8f7d);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.login-button-top-right:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 15px rgba(78, 205, 196, 0.4);
+}
+
+.user-info-top-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+}
+
+.welcome-text-top-right {
+    color: #4ecdc4;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
+    white-space: nowrap;
+}
+
+.logout-button-top-right {
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    white-space: nowrap;
+}
+
+.logout-button-top-right:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Wallet Section - Top Left */
+.wallet-section-top-left {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+/* Legacy Authentication Section (keeping for backward compatibility) */
+.auth-section {
+    margin-bottom: 2rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.login-button {
+    padding: 12px 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 120px;
+}
+
+.login-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(45deg, #5a6fd8, #6a41a0);
+}
+
+.login-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    min-width: 280px;
+}
+
+.welcome-text {
+    color: #4ecdc4;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
+}
+
+.logout-button {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.logout-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Username Management Styles */
+.username-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.username-input-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.username-input, .nickname-input {
+    flex: 1;
+    padding: 15px 20px;
+    font-size: 1.1rem;
+    border: 2px solid #4ecdc4;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.username-input::placeholder, .nickname-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.username-input:focus, .nickname-input:focus {
+    outline: none;
+    box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
+    transform: scale(1.02);
+}
+
+/* Username validation states */
+.username-input.neutral {
+    border-color: #4ecdc4;
+}
+
+.username-input.checking {
+    border-color: #f39c12;
+    animation: pulse 1.5s infinite;
+}
+
+.username-input.valid {
+    border-color: #27ae60;
+    box-shadow: 0 0 15px rgba(39, 174, 96, 0.3);
+}
+
+.username-input.invalid {
+    border-color: #e74c3c;
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.3);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Save username button */
+.save-username-button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.save-username-button:hover:not(:disabled) {
+    background: linear-gradient(45deg, #45b7d1, #3d8f7d);
+    transform: translateY(-1px);
+}
+
+.save-username-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.save-username-button.saved {
+    background: linear-gradient(45deg, #27ae60, #219a52);
+    animation: savedPulse 0.6s ease-out;
+}
+
+@keyframes savedPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.checkmark {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.loading-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Validation messages */
+.username-error {
+    font-size: 0.85rem;
+    color: #e74c3c;
+    text-align: center;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.username-checking {
+    font-size: 0.85rem;
+    color: #f39c12;
+    text-align: center;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+/* Play button disabled state */
+.play-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #666;
+    transform: none;
+}
+
+.play-button.disabled:hover {
+    background: #666;
+    transform: none;
+    box-shadow: none;
 }
 
 /* Game Screen */
@@ -417,24 +925,245 @@ html, body {
     box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
 }
 
-/* Responsive Design */
+/* Wallet Balance Component */
+.wallet-balance {
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    min-width: 320px;
+    max-width: 400px;
+    margin: 20px;
+}
+
+.wallet-balance-header {
+    margin-bottom: 16px;
+}
+
+.wallet-balance-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.wallet-icon {
+    font-size: 20px;
+}
+
+.refresh-button {
+    background: none;
+    border: none;
+    color: #4ECDC4;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    margin-left: auto;
+}
+
+.refresh-button:hover:not(:disabled) {
+    background: rgba(78, 205, 196, 0.1);
+    transform: rotate(180deg);
+}
+
+.refresh-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.wallet-balance-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Balance Display */
+.balance-display {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.usd-balance {
+    font-size: 36px;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.sol-balance {
+    font-size: 18px;
+    color: #4ECDC4;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.balance-note {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+/* Loading States */
+.balance-loading, .balance-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: #ffffff;
+    text-align: center;
+}
+
+.balance-error {
+    flex-direction: column;
+    gap: 12px;
+}
+
+.retry-button {
+    background: #4ECDC4;
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retry-button:hover {
+    background: #3fb8b1;
+    transform: translateY(-1px);
+}
+
+/* Wallet Actions */
+.wallet-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wallet-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.wallet-action-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.wallet-action-btn:hover::before {
+    left: 100%;
+}
+
+.btn-icon {
+    font-size: 18px;
+}
+
+/* Add Funds Button */
+.add-funds-btn {
+    background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+    color: #000;
+    border: 2px solid transparent;
+}
+
+.add-funds-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+}
+
+/* Cash Out Button */
+.cash-out-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.cash-out-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
+}
+
+.cash-out-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Wallet Address Button */
+.address-btn {
+    background: rgba(78, 205, 196, 0.1);
+    color: #4ECDC4;
+    border: 2px solid rgba(78, 205, 196, 0.2);
+}
+
+.address-btn:hover {
+    background: rgba(78, 205, 196, 0.2);
+    border-color: rgba(78, 205, 196, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(78, 205, 196, 0.2);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid #4ECDC4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design for Wallet */
 @media (max-width: 768px) {
-    .game-title {
-        font-size: 2.5rem;
+    .wallet-balance {
+        min-width: 280px;
+        margin: 10px;
+        padding: 16px;
     }
     
-    .death-stats-row {
-        flex-direction: column;
-        align-items: center;
+    .usd-balance {
+        font-size: 28px;
     }
     
-    .death-stat {
-        margin-bottom: 1rem;
+    .sol-balance {
+        font-size: 16px;
     }
     
-    .leaderboard-container {
-        right: 10px;
-        top: 10px;
-        min-width: 160px;
+    .wallet-action-btn {
+        padding: 12px 16px;
+        font-size: 14px;
     }
 } 

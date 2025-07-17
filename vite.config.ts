@@ -1,9 +1,23 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    nodePolyfills({
+      // Enable polyfills for specific globals and modules
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      // Enable polyfills for specific modules
+      protocolImports: true,
+    })
+  ],
   root: 'client',
+  envDir: '../', // Look for .env files in the project root
   build: {
     outDir: '../dist-client',
     emptyOutDir: true,
@@ -29,5 +43,8 @@ export default defineConfig({
       '@types': '/src/types',
       '@utils': '/src/utils',
     },
+  },
+  define: {
+    global: 'globalThis',
   },
 }) 
