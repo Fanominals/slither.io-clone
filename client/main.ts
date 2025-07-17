@@ -5,13 +5,6 @@ import { Renderer } from './game/Renderer.js';
 import { ClientSnake } from './game/Snake.js';
 import { ClientFood } from './game/Food.js';
 import { PlayerData, FoodData, GAME_CONFIG } from '../common/constants.js';
-import { authService } from './auth/AuthService.js';
-import { LoginModal } from './auth/LoginModal.js';
-import { UsernameModal } from './auth/UsernameModal.js';
-import { privyIntegrationService } from './auth/PrivyIntegrationService.js';
-import { privyApiClient } from './auth/PrivyApiClient.js';
-import { AddFundsModal } from './wallet/AddFundsModal.js';
-import { walletService, type WalletBalance } from './wallet/WalletService.js';
 
 class Game {
     private canvas!: HTMLCanvasElement;
@@ -53,32 +46,6 @@ class Game {
     private lastFpsUpdate: number = 0;
     private fps: number = 0;
     
-    // Authentication UI elements
-    private authContainer!: HTMLElement;
-    private userInfo!: HTMLElement;
-    private userAvatar!: HTMLImageElement;
-    private userName!: HTMLElement;
-    private signInButton!: HTMLButtonElement;
-    private signOutButton!: HTMLButtonElement;
-    private loginModal!: LoginModal;
-    private usernameModal!: UsernameModal;
-    
-    // New UI elements
-    private loginPrompt!: HTMLElement;
-    private savedIndicator!: HTMLElement;
-    private playButtonText!: HTMLElement;
-    private bettingOptions!: HTMLElement;
-    private selectedBetAmount: number = 1;
-    
-    // Wallet UI elements
-    private walletBalanceContainer!: HTMLElement;
-    private solBalanceDisplay!: HTMLElement;
-    private usdBalanceDisplay!: HTMLElement;
-    private addFundsButton!: HTMLElement;
-    private cashOutButton!: HTMLElement;
-    private refreshBalanceButton!: HTMLElement;
-    private addFundsModal!: AddFundsModal;
-    
     // Game state
     private currentNickname: string = '';
     private connected: boolean = false;
@@ -91,8 +58,6 @@ class Game {
         this.initializeComponents();
         this.setupEventListeners();
         this.setupNetworking();
-        this.initializePrivy(); // Initialize Privy authentication
-        this.updateAuthUI(); // Initialize auth UI
         this.startGameLoop();
     }
 
@@ -111,33 +76,6 @@ class Game {
         this.finalLength = document.getElementById('finalLength')!;
         this.leaderboardList = document.getElementById('leaderboardList')!;
         this.fpsCounter = document.getElementById('fpsCounter')!;
-        
-        // Authentication UI elements
-        this.authContainer = document.getElementById('authContainer')!;
-        this.userInfo = document.getElementById('userInfo')!;
-        this.userAvatar = document.getElementById('userAvatar') as HTMLImageElement;
-        this.userName = document.getElementById('userName')!;
-        this.signInButton = document.getElementById('signInButton') as HTMLButtonElement;
-        this.signOutButton = document.getElementById('signOutButton') as HTMLButtonElement;
-        
-        // New UI elements
-        this.loginPrompt = document.getElementById('loginPrompt')!;
-        this.savedIndicator = document.getElementById('savedIndicator')!;
-        this.playButtonText = document.getElementById('playButtonText')!;
-        this.bettingOptions = document.getElementById('bettingOptions')!;
-        
-        // Wallet UI elements
-        this.walletBalanceContainer = document.getElementById('walletBalanceContainer')!;
-        this.solBalanceDisplay = document.getElementById('solBalance')!;
-        this.usdBalanceDisplay = document.getElementById('usdBalance')!;
-        this.addFundsButton = document.getElementById('addFundsBtn')!;
-        this.cashOutButton = document.getElementById('cashOutBtn')!;
-        this.refreshBalanceButton = document.getElementById('refreshBalanceBtn')!;
-        
-        // Initialize modals
-        this.loginModal = new LoginModal();
-        this.usernameModal = new UsernameModal();
-        this.addFundsModal = new AddFundsModal();
     }
 
     private initializeCanvas(): void {
@@ -162,40 +100,10 @@ class Game {
         this.socketManager = new SocketManager();
     }
 
-    private async initializePrivy(): Promise<void> {
-        try {
-            console.log('🚀 Initializing Privy...');
-            
-            // Check if user has existing Privy session
-            if (privyApiClient.isAuthenticated()) {
-                const user = privyApiClient.getCurrentUser();
-                if (user && user.embedded_wallets?.[0]?.address) {
-                    console.log('🔄 Restoring Privy session for user:', user.id);
-                    await privyIntegrationService.initializeIntegration(user);
-                }
-            }
-            
-            console.log('✅ Privy API client ready');
-        } catch (error) {
-            console.error('❌ Failed to initialize Privy:', error);
-            console.warn('🔄 Falling back to Firebase-only authentication');
-        }
-    }
-
     private setupEventListeners(): void {
-        // Play button - now requires authentication and username
-        this.playButton.addEventListener('click', async () => {
-            if (!authService.isAuthenticated()) {
-                this.loginModal.show(() => {
-                    this.updateAuthUI();
-                });
-            } else if (!authService.hasUsernameSet()) {
-                this.usernameModal.show((username) => {
-                    this.updateAuthUI();
-                });
-            } else {
-                await this.startGame();
-            }
+        // Play button
+        this.playButton.addEventListener('click', () => {
+            this.startGame();
         });
 
         // Respawn button
@@ -215,91 +123,6 @@ class Game {
             }
         });
 
-        // Authentication event listeners
-        this.signInButton.addEventListener('click', async () => {
-            try {
-                if (privyApiClient.isReady()) {
-                    // Use Privy for authentication
-                    const user = await privyApiClient.login();
-                    if (user) {
-                        // Initialize integration with the Privy user
-                        await privyIntegrationService.initializeIntegration(user);
-                    }
-                } else {
-                    // Fallback to Firebase if Privy isn't ready
-                    this.loginModal.show(() => {
-                        this.updateAuthUI();
-                    });
-                }
-                this.updateAuthUI();
-            } catch (error) {
-                console.error('Sign in failed:', error);
-                // Fallback to Firebase on error
-                this.loginModal.show(() => {
-                    this.updateAuthUI();
-                });
-            }
-        });
-
-        this.signOutButton.addEventListener('click', async () => {
-            try {
-                // Sign out from both Privy and Firebase
-                if (privyApiClient.isAuthenticated()) {
-                    await privyApiClient.logout();
-                    privyIntegrationService.resetIntegration();
-                }
-                await authService.signOut();
-                this.updateAuthUI();
-            } catch (error) {
-                console.error('Sign out failed:', error);
-            }
-        });
-
-        // Betting options event listeners
-        this.bettingOptions.addEventListener('click', (e) => {
-            const target = e.target as HTMLElement;
-            if (target.classList.contains('bet-button')) {
-                // Remove selected class from all buttons
-                this.bettingOptions.querySelectorAll('.bet-button').forEach(btn => {
-                    btn.classList.remove('selected');
-                });
-                // Add selected class to clicked button
-                target.classList.add('selected');
-                // Update selected bet amount
-                this.selectedBetAmount = parseInt(target.getAttribute('data-amount') || '1');
-            }
-        });
-
-        // Login prompt click
-        this.loginPrompt.addEventListener('click', () => {
-            if (!authService.isAuthenticated()) {
-                this.loginModal.show(() => {
-                    this.updateAuthUI();
-                });
-            } else if (!authService.hasUsernameSet()) {
-                this.usernameModal.show((username) => {
-                    this.updateAuthUI();
-                });
-            }
-        });
-
-        // Wallet event listeners
-        this.addFundsButton.addEventListener('click', () => {
-            this.addFundsModal.show();
-        });
-
-        this.cashOutButton.addEventListener('click', () => {
-            // TODO: Implement cash out functionality
-            console.log('Cash out clicked');
-        });
-
-        this.refreshBalanceButton.addEventListener('click', () => {
-            this.refreshWalletBalance();
-        });
-
-        // Setup wallet balance monitoring
-        this.setupWalletMonitoring();
-
         // Prevent context menu on canvas
         this.canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -317,11 +140,6 @@ class Game {
                 this.showGameScreen();
                 this.gameRunning = true;
             }
-        });
-
-        // Setup authentication state listener
-        authService.onAuthStateChanged((user) => {
-            this.updateAuthUI();
         });
 
         this.socketManager.on('disconnected', () => {
@@ -363,25 +181,10 @@ class Game {
         });
     }
 
-    private async startGame(): Promise<void> {
+    private startGame(): void {
         const nickname = this.nicknameInput.value.trim();
         if (!nickname) {
             this.nicknameInput.focus();
-            return;
-        }
-
-        // Check if user has sufficient balance
-        if (!privyIntegrationService.canAffordGame()) {
-            // Show insufficient balance message
-            alert('Insufficient balance! Please add funds to play.');
-            this.addFundsModal.show();
-            return;
-        }
-
-        // Deduct game cost before starting
-        const paymentSuccess = await privyIntegrationService.deductGameCost();
-        if (!paymentSuccess) {
-            alert('Payment failed! Please try again.');
             return;
         }
 
@@ -653,147 +456,6 @@ class Game {
         }
     }
 
-    private forceUsernameRefresh(newUsername: string): void {
-        console.log('Force refreshing username to:', newUsername);
-        
-        // Update the login text immediately
-        const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
-        if (loginText) {
-            loginText.textContent = `Playing as: ${newUsername}`;
-            console.log('Updated login text to:', loginText.textContent);
-        } else {
-            console.error('Could not find login text element');
-        }
-        
-        // Update the nickname input for the game
-        if (this.nicknameInput) {
-            this.nicknameInput.value = newUsername;
-            console.log('Updated nickname input to:', this.nicknameInput.value);
-        } else {
-            console.error('Could not find nickname input element');
-        }
-        
-        // Force update the cached profile in AuthService
-        authService.updateCachedUsername(newUsername);
-        
-        console.log('Username display force updated successfully');
-    }
-
-    private setupUsernameClickHandler(): void {
-        const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
-        
-        // Remove any existing click handlers by removing and re-adding the class
-        loginText.onclick = null;
-        
-        // Add new click handler
-        loginText.onclick = () => {
-            this.usernameModal.show((username) => {
-                console.log('Username callback called with:', username);
-                
-                // Immediately update the display with the new username
-                this.forceUsernameRefresh(username);
-                
-                console.log('Username display forcefully updated to:', username);
-            });
-        };
-    }
-
-    private updateAuthUI(): void {
-        const user = authService.getCurrentUser();
-        const userProfile = authService.getUserProfile();
-        const privyUser = privyApiClient.getCurrentUser();
-        const isAuthenticated = authService.isAuthenticated() || privyApiClient.isAuthenticated();
-
-        if ((user && userProfile) || privyUser) {
-            // User is signed in
-            this.signInButton.classList.add('hidden');
-            this.signOutButton.classList.remove('hidden');
-            this.userInfo.classList.remove('hidden');
-
-            // Update user info - prioritize Firebase data if available, fallback to Privy
-            if (user && userProfile) {
-                this.userName.textContent = userProfile.displayName || user.email || 'User';
-                this.userAvatar.src = userProfile.photoURL || '';
-                this.userAvatar.alt = userProfile.displayName || 'User Avatar';
-            } else if (privyUser) {
-                // Privy user without Firebase profile
-                this.userName.textContent = privyUser.id || 'User';
-                this.userAvatar.src = '';
-                this.userAvatar.alt = 'User Avatar';
-            }
-
-            if (userProfile && authService.hasUsernameSet()) {
-                // User has username set - ready to play
-                this.savedIndicator.classList.remove('hidden');
-                this.playButton.classList.remove('disabled');
-                this.playButtonText.textContent = 'Play';
-                this.playButton.querySelector('.play-icon')!.textContent = '🎮';
-                
-                // Update login prompt text and make it clickable
-                const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
-                loginText.textContent = `Playing as: ${userProfile.username}`;
-                loginText.classList.add('clickable-username');
-                
-                // Only setup click handler if it's not already set up
-                if (!loginText.onclick) {
-                    this.setupUsernameClickHandler();
-                }
-
-                // Pre-fill nickname with username for game
-                if (userProfile.username) {
-                    this.nicknameInput.value = userProfile.username;
-                }
-            } else if (privyUser && privyIntegrationService.isFullyIntegrated()) {
-                // Privy user is fully integrated (has wallet)
-                this.savedIndicator.classList.remove('hidden');
-                this.playButton.classList.remove('disabled');
-                this.playButtonText.textContent = 'Play';
-                this.playButton.querySelector('.play-icon')!.textContent = '🎮';
-                
-                // Update login prompt text
-                const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
-                loginText.textContent = `Playing with wallet: ${privyUser.embedded_wallets?.[0]?.address?.slice(0,8)}...`;
-                loginText.classList.add('clickable-username');
-                
-                // Pre-fill nickname with wallet address (shortened)
-                const walletAddress = privyUser.embedded_wallets?.[0]?.address;
-                if (walletAddress) {
-                    this.nicknameInput.value = `Player-${walletAddress.slice(-6)}`;
-                }
-            } else {
-                // User signed in but needs to set username or get wallet
-                this.savedIndicator.classList.add('hidden');
-                this.playButton.classList.add('disabled');
-                this.playButtonText.textContent = userProfile ? 'Set Username to Play' : 'Creating Wallet...';
-                this.playButton.querySelector('.play-icon')!.textContent = userProfile ? '📝' : '💼';
-                
-                // Update login prompt text
-                const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
-                loginText.textContent = userProfile ? 'Set your username to play' : 'Setting up your wallet...';
-                loginText.classList.remove('clickable-username');
-            }
-        } else {
-            // User is signed out
-            this.signInButton.classList.remove('hidden');
-            this.signOutButton.classList.add('hidden');
-            this.userInfo.classList.add('hidden');
-
-            // Update new UI elements for signed-out state
-            this.savedIndicator.classList.add('hidden');
-            this.playButton.classList.add('disabled');
-            this.playButtonText.textContent = 'Login to Play';
-            this.playButton.querySelector('.play-icon')!.textContent = '🔒';
-            
-            // Reset login prompt text
-            const loginText = this.loginPrompt.querySelector('.login-text') as HTMLElement;
-            loginText.textContent = 'Login to set your name';
-            loginText.classList.remove('clickable-username');
-        }
-        
-        // Update wallet UI based on integration status
-        this.updateWalletUI();
-    }
-
     private updateLeaderboard(): void {
         // Use leaderboard players data (all players) instead of visible players
         const playersArr = Array.from(this.leaderboardPlayers.values()).filter(player => player.alive);
@@ -887,71 +549,6 @@ class Game {
         if (currentTime - this.lastFpsUpdate > 200) {
             this.fpsCounter.textContent = `FPS: ${this.fps}`;
             this.lastFpsUpdate = currentTime;
-        }
-    }
-
-    // Wallet-related methods
-    private async refreshWalletBalance(): Promise<void> {
-        // Add visual feedback for refresh
-        this.refreshBalanceButton.style.transform = 'rotate(180deg)';
-        
-        try {
-            // Force update wallet balance from blockchain
-            const walletData = privyIntegrationService.getWalletData();
-            if (walletData) {
-                // The wallet service will automatically detect balance changes
-                console.log('Refreshing wallet balance...');
-            }
-        } catch (error) {
-            console.error('Error refreshing balance:', error);
-        } finally {
-            // Reset button animation
-            setTimeout(() => {
-                this.refreshBalanceButton.style.transform = '';
-            }, 500);
-        }
-    }
-
-    private setupWalletMonitoring(): void {
-        // Listen for integration changes
-        privyIntegrationService.onIntegrationChange((integrated) => {
-            this.updateWalletUI();
-        });
-
-        // Listen for balance changes
-        walletService.onBalanceChange((balance) => {
-            this.updateBalanceDisplay(balance);
-        });
-    }
-
-    private updateWalletUI(): void {
-        const isIntegrated = privyIntegrationService.isFullyIntegrated();
-        
-        if (isIntegrated) {
-            this.walletBalanceContainer.classList.remove('hidden');
-            this.updateBalanceDisplay();
-        } else {
-            this.walletBalanceContainer.classList.add('hidden');
-        }
-    }
-
-    private updateBalanceDisplay(balance?: WalletBalance): void {
-        const currentBalance = balance || privyIntegrationService.getBalance();
-        
-        if (currentBalance) {
-            this.solBalanceDisplay.textContent = `${currentBalance.sol.toFixed(4)} SOL`;
-            this.usdBalanceDisplay.textContent = `$${currentBalance.usd.toFixed(2)}`;
-            
-            // Update cash out button state
-            if (currentBalance.sol > 0) {
-                this.cashOutButton.classList.remove('disabled');
-            } else {
-                this.cashOutButton.classList.add('disabled');
-            }
-        } else {
-            this.solBalanceDisplay.textContent = '0.0000 SOL';
-            this.usdBalanceDisplay.textContent = '$0.00';
-            this.cashOutButton.classList.add('disabled');
         }
     }
 }

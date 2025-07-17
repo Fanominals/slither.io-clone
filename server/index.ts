@@ -15,14 +15,26 @@ const io = new Server(server, {
     }
 });
 
-// Serve static files from dist directory
-app.use(express.static(path.join(process.cwd(), 'dist-client')));
-app.use('/common', express.static(path.join(process.cwd(), 'common')));
+// Only serve static files in production
+if (process.env.NODE_ENV === 'production') {
+    // Serve static files from dist directory
+    app.use(express.static(path.join(process.cwd(), 'dist-client')));
+    app.use('/common', express.static(path.join(process.cwd(), 'common')));
 
-// Serve index.html for all routes (for client-side routing)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'dist-client/index.html'));
-});
+    // Serve index.html for all routes (for client-side routing)
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(process.cwd(), 'dist-client/index.html'));
+    });
+} else {
+    // In development, just provide a simple API status endpoint
+    app.get('/', (req, res) => {
+        res.json({ 
+            status: 'Server running',
+            mode: 'development',
+            message: 'Game client is served by Vite on port 5173'
+        });
+    });
+}
 
 // Game state instance
 const gameState = new GameState();
@@ -120,4 +132,4 @@ server.listen(PORT, HOST, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Game world: ${GAME_CONFIG.WORLD_WIDTH}x${GAME_CONFIG.WORLD_HEIGHT}`);
     console.log(`Tick rate: ${GAME_CONFIG.TICK_RATE} FPS`);
-}); 
+});

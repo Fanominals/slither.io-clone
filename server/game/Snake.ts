@@ -49,7 +49,8 @@ export class Snake {
     // Initialize segments based on initial length
     private initializeSegments(): void {
         this.segments = [];
-        const visualLength = Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR);
+        // Ensure at least 1 segment (the head) is always present
+        const visualLength = Math.max(1, Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR));
         for (let i = 0; i < visualLength; i++) {
             const segmentRadius = this.calculateSegmentRadius(i);
             this.segments.push({
@@ -90,12 +91,12 @@ export class Snake {
 
         // --- Boosting length reduction logic ---
         if (this.isBoosting && this.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
-            // Lose length proportional to time spent boosting
+            // Lose length proportional to time spent boosting (stop at initial length)
             const lengthLoss = GAME_CONFIG.BOOST_LENGTH_LOSS_PER_SEC * deltaTime;
             this.length = Math.max(this.length - lengthLoss, GAME_CONFIG.INITIAL_SNAKE_LENGTH);
             // Calculate target visual length and remove excess segments
             const targetVisualLength = Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR);
-            while (this.segments.length > targetVisualLength && this.segments.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH) {
+            while (this.segments.length > targetVisualLength) {
                 this.segments.pop();
             }
         }
@@ -161,7 +162,8 @@ export class Snake {
         this.length += lengthIncrement;
         
         // Calculate how many visual segments we should have now
-        const targetVisualLength = Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR);
+        // Ensure at least 1 segment (the head) is always present
+        const targetVisualLength = Math.max(1, Math.floor(this.length * GAME_CONFIG.VISUAL_LENGTH_FACTOR));
         
         // Add new segments if needed
         while (this.segments.length < targetVisualLength) {
@@ -182,6 +184,15 @@ export class Snake {
 
     // Get head segment
     getHead(): SnakeSegment {
+        if (this.segments.length === 0) {
+            // If no segments exist, create a head segment at current position
+            const headSegment: SnakeSegment = {
+                x: this.x,
+                y: this.y,
+                radius: this.calculateSegmentRadius(0)
+            };
+            this.segments.push(headSegment);
+        }
         return this.segments[0];
     }
 

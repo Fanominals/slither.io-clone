@@ -242,6 +242,6 @@ export class ClientSnake {
 
     // Check if boosting is allowed (for UI feedback)
     canBoost(): boolean {
-        return this.length > GAME_CONFIG.INITIAL_SNAKE_LENGTH;
+        return this.length > 1; // Allow boosting as long as length is greater than 1
     }
 } 
