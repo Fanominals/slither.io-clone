@@ -1,4 +1,4 @@
-import { GAME_CONFIG, clamp, lerp } from '../common/constants';
+import { GAME_CONFIG, clamp, lerp } from '../../../common/constants';
 import { Vector2D } from '../types';
 
 export class Camera {

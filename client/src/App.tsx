@@ -3,7 +3,9 @@ import { PrivyProvider } from '@privy-io/react-auth';
 import { MenuScreen } from './components/screens/MenuScreen';
 import { GameScreen } from './components/screens/GameScreen';
 import { ErrorScreen } from './components/screens/ErrorScreen';
+
 import { AuthProvider } from './contexts/AuthContext';
+import { GameProvider } from './contexts/GameContext';
 import { privyConfig } from './config/privy';
 
 type AppState = 'menu' | 'game' | 'error';
@@ -39,7 +41,7 @@ export const App: React.FC = () => {
         setAppState('menu');
     };
 
-    const appId = import.meta.env.VITE_PRIVY_APP_ID;
+    const appId = (import.meta as any).env?.VITE_PRIVY_APP_ID;
     
     if (!appId) {
         return (
@@ -55,25 +57,27 @@ export const App: React.FC = () => {
     return (
         <PrivyProvider appId={appId} config={privyConfig}>
             <AuthProvider>
-                <div className="app">
-                    {appState === 'menu' && (
-                        <MenuScreen onStartGame={handleStartGame} />
-                    )}
-                    
-                    {appState === 'game' && (
-                        <GameScreen 
-                            nickname={nickname} 
-                            onGameEnd={handleGameEnd}
-                        />
-                    )}
-            
-                                {appState === 'error' && error && (
-                        <ErrorScreen 
-                            message={error.message}
-                            onRetry={handleRetry}
-                        />
-                    )}
-                </div>
+                <GameProvider>
+                    <div className="app">
+                        {appState === 'menu' && (
+                            <MenuScreen onStartGame={handleStartGame} />
+                        )}
+                        
+                        {appState === 'game' && (
+                            <GameScreen 
+                                nickname={nickname} 
+                                onGameEnd={handleGameEnd}
+                            />
+                        )}
+                
+                        {appState === 'error' && error && (
+                            <ErrorScreen 
+                                message={error.message}
+                                onRetry={handleRetry}
+                            />
+                        )}
+                    </div>
+                </GameProvider>
             </AuthProvider>
         </PrivyProvider>
     );

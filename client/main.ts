@@ -51,6 +51,9 @@ class Game {
     private connected: boolean = false;
     private lastMoveTime: number = 0;
     private moveThrottle: number = 1000 / 120; // Increased from 60 to 120 FPS for more responsive input
+    
+    // Payment state
+    private pendingPaidGameJoin: { serverId: string; walletAddress: string } | null = null;
 
     constructor() {
         this.initializeDOM();
@@ -136,7 +139,14 @@ class Game {
             
             // If we're in the process of starting a game, show the game screen
             if (this.currentNickname) {
-                this.socketManager.joinGame(this.currentNickname);
+                // Check if we have a pending paid game join after payment verification
+                if (this.pendingPaidGameJoin) {
+                    console.log('Joining paid game after connection:', this.pendingPaidGameJoin);
+                    this.socketManager.joinPaidGame(this.pendingPaidGameJoin.serverId, this.pendingPaidGameJoin.walletAddress);
+                    this.pendingPaidGameJoin = null; // Clear pending join
+                } else {
+                    this.socketManager.joinGame(this.currentNickname);
+                }
                 this.showGameScreen();
                 this.gameRunning = true;
             }
@@ -178,6 +188,15 @@ class Game {
 
         this.socketManager.on('food_eaten', (data: any) => {
             this.handleFoodEaten(data);
+        });
+
+        // Payment verification handlers
+        this.socketManager.on('payment_verified', (data: any) => {
+            this.handlePaymentVerified(data);
+        });
+
+        this.socketManager.on('payment_failed', (data: any) => {
+            this.handlePaymentFailed(data);
         });
     }
 
@@ -414,6 +433,29 @@ class Game {
         this.food.delete(data.foodId);
     }
 
+    private handlePaymentVerified(data: any): void {
+        console.log('Payment verified! Auto-joining paid game...', data);
+        // If we're already connected, join the paid game immediately
+        if (this.connected && this.pendingPaidGameJoin) {
+            this.socketManager.joinPaidGame(this.pendingPaidGameJoin.serverId, this.pendingPaidGameJoin.walletAddress);
+            this.pendingPaidGameJoin = null;
+            this.showGameScreen();
+            this.gameRunning = true;
+        }
+    }
+
+    private handlePaymentFailed(data: any): void {
+        console.error('Payment verification failed:', data);
+        this.pendingPaidGameJoin = null; // Clear pending join
+        this.showErrorScreen('Payment verification failed. Please try again.');
+    }
+
+    // Method to set pending paid game join (called by payment modal or external payment system)
+    public setPendingPaidGameJoin(serverId: string, walletAddress: string): void {
+        this.pendingPaidGameJoin = { serverId, walletAddress };
+        console.log('Set pending paid game join:', this.pendingPaidGameJoin);
+    }
+
     private getLocalPlayer(): ClientSnake | null {
         return this.localPlayerId ? this.players.get(this.localPlayerId) || null : null;
     }
@@ -554,6 +596,10 @@ class Game {
 }
 
 // Initialize the game when the page loads
+let gameInstance: Game | undefined;
+
 document.addEventListener('DOMContentLoaded', () => {
-    new Game();
+    gameInstance = new Game();
+    // Make game instance available globally for payment integration
+    (window as any).gameInstance = gameInstance;
 }); 

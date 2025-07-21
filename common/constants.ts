@@ -25,11 +25,24 @@ export const GAME_CONFIG = {
     BORDER_WIDTH: 50, // Width of the red kill border
     SNAKE_TURN_RATE: 3.5, // radians per second
     PLAYER_VIEW_RADIUS: 2000, // Half of typical max viewport width (1600) plus buffer
-    BOT_COUNT: 1, // Number of AI bots to spawn for testing
+    BOT_COUNT: 2, // Number of AI bots to spawn for testing
     SPATIAL_GRID_CELL_SIZE: 500, // Cell size for spatial grid, tuned for 1000px view radius
     SNAKE_SPAWN_MIN_DIST: 200, // Minimum distance from any snake head for spawning
     BOOST_LENGTH_LOSS_PER_SEC: 5, // How much length is lost per second while boosting
     INPUT_DEADZONE: 30, // Minimum distance from snake head to mouse for movement input (fallback value)
+} as const;
+
+// Payment-related constants
+export const PAYMENT_STATES = {
+  IDLE: 'IDLE',
+  INITIALIZING: 'INITIALIZING',
+  CHECKING_BALANCE: 'CHECKING_BALANCE',
+  PREPARING_TRANSACTION: 'PREPARING_TRANSACTION',
+  AWAITING_SIGNATURE: 'AWAITING_SIGNATURE',
+  SENDING_TRANSACTION: 'SENDING_TRANSACTION',
+  CONFIRMING: 'CONFIRMING',
+  COMPLETED: 'COMPLETED',
+  ERROR: 'ERROR'
 } as const;
 
 // Socket.IO Event Names
@@ -44,7 +57,11 @@ export const SOCKET_EVENTS = {
     SNAKE_DIED: 'snake_died',
     FOOD_EATEN: 'food_eaten',
     PLAYER_JOINED: 'player_joined',
-    PLAYER_LEFT: 'player_left'
+    PLAYER_LEFT: 'player_left',
+    SUBMIT_PAYMENT: 'submit_payment',
+    PAYMENT_VERIFIED: 'payment_verified',
+    PAYMENT_FAILED: 'payment_failed',
+    JOIN_PAID_GAME: 'join_paid_game'
 } as const;
 
 // Network Update Types

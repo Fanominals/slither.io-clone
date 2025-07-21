@@ -70,6 +70,17 @@ export class SocketManager {
         this.socket.on(SOCKET_EVENTS.FOOD_EATEN, (data: any) => {
             this.emit('food_eaten', data);
         });
+
+        // Payment event handlers
+        this.socket.on(SOCKET_EVENTS.PAYMENT_VERIFIED, (data: any) => {
+            console.log('Payment verified by server');
+            this.emit('payment_verified', data);
+        });
+
+        this.socket.on(SOCKET_EVENTS.PAYMENT_FAILED, (data: any) => {
+            console.log('Payment verification failed:', data);
+            this.emit('payment_failed', data);
+        });
     }
 
     connect(): void {
@@ -86,6 +97,11 @@ export class SocketManager {
 
     joinGame(nickname: string): void {
         this.socket.emit(SOCKET_EVENTS.JOIN_GAME, { nickname });
+    }
+
+    joinPaidGame(serverId: string, walletAddress: string): void {
+        console.log(`Joining paid game: ${serverId} with wallet: ${walletAddress}`);
+        this.socket.emit(SOCKET_EVENTS.JOIN_PAID_GAME, { serverId, walletAddress });
     }
 
     sendPlayerMove(angle: number, isBoosting: boolean = false): void {

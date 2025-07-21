@@ -4,14 +4,14 @@
   "description": "A production-ready Slither.io clone with real-time multiplayer",
   "main": "server/index.js",
   "scripts": {
-    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
-    "server:dev": "nodemon server/index.ts",
-    "client:dev": "vite",
-    "client:build": "vite build",
-    "client:preview": "vite preview",
-    "build": "npm run build:server && npm run client:build",
-    "start": "node dist/server/index.js",
-    "build:server": "tsc -p tsconfig.json"
+    "dev": "NODE_ENV=development concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server:dev": "NODE_ENV=development nodemon server/index.ts",
+    "client:dev": "NODE_ENV=development vite",
+    "client:build": "NODE_ENV=production vite build",
+    "client:preview": "NODE_ENV=production vite preview",
+    "build": "NODE_ENV=production npm run build:server && npm run client:build",
+    "start": "NODE_ENV=production node dist/server/index.js",
+    "build:server": "NODE_ENV=production tsc -p tsconfig.json"
   },
   "keywords": [
     "slither",
@@ -28,6 +28,7 @@
     "@solana/web3.js": "^1.98.2",
     "@supabase/supabase-js": "^2.51.0",
     "@types/firebase": "^2.4.32",
+    "dotenv": "^17.2.0",
     "express": "^4.18.2",
     "firebase": "^11.10.0",
     "qrcode": "^1.5.4",

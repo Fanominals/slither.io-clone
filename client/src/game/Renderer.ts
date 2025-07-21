@@ -1,7 +1,7 @@
 import { ClientSnake } from './Snake';
 import { ClientFood } from './Food';
 import { Camera } from './Camera';
-import { GAME_CONFIG } from '../common/constants';
+import { GAME_CONFIG } from '../../../common/constants';
 import { Vector2D } from '../types';
 
 export class Renderer {

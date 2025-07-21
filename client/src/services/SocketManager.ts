@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { SOCKET_EVENTS } from '../common/constants';
+import { SOCKET_EVENTS } from '../../../common/constants';
 
 export type SocketEventHandler = (...args: any[]) => void;
 
@@ -75,6 +75,15 @@ export class SocketManager {
         }
     }
 
+    public joinPaidGame(serverId: string, walletAddress: string, nickname: string): void {
+        if (this.socket && this.connected) {
+            console.log(`Joining paid game: ${serverId} with wallet: ${walletAddress} and nickname: ${nickname}`);
+            this.socket.emit(SOCKET_EVENTS.JOIN_PAID_GAME, { serverId, walletAddress, nickname });
+        } else {
+            console.error('Cannot join paid game: socket not connected');
+        }
+    }
+
     public sendPlayerMove(angle: number, isBoosting: boolean): void {
         if (this.socket && this.connected) {
             this.socket.emit(SOCKET_EVENTS.PLAYER_MOVE, {
@@ -83,6 +92,40 @@ export class SocketManager {
                 timestamp: Date.now()
             });
         }
+    }
+
+    public submitPayment(paymentData: {
+        signature: string;
+        serverId: string;
+        entryFeeSol: number;
+        walletAddress: string;
+        actualFees?: string;
+        transactionData?: {
+            serialized: string;
+            type: string;
+        } | null;
+        parsedResult?: {
+            slot: number;
+            blockTime: number | null;
+            meta: {
+                err: any;
+                fee: number;
+                preBalances: number[];
+                postBalances: number[];
+            };
+        } | null;
+    }): void {
+        if (this.socket && this.connected) {
+            this.socket.emit(SOCKET_EVENTS.SUBMIT_PAYMENT, paymentData);
+        }
+    }
+
+    public onPaymentVerified(callback: () => void): void {
+        this.on(SOCKET_EVENTS.PAYMENT_VERIFIED, callback);
+    }
+
+    public onPaymentFailed(callback: (error: string) => void): void {
+        this.on(SOCKET_EVENTS.PAYMENT_FAILED, callback);
     }
 
     private setupEventHandlers(): void {
@@ -128,6 +171,15 @@ export class SocketManager {
 
         this.socket.on(SOCKET_EVENTS.FOOD_EATEN, (data: any) => {
             this.emit(SOCKET_EVENTS.FOOD_EATEN, data);
+        });
+
+        // Payment event handlers
+        this.socket.on(SOCKET_EVENTS.PAYMENT_VERIFIED, () => {
+            this.emit(SOCKET_EVENTS.PAYMENT_VERIFIED);
+        });
+
+        this.socket.on(SOCKET_EVENTS.PAYMENT_FAILED, (error: string) => {
+            this.emit(SOCKET_EVENTS.PAYMENT_FAILED, error);
         });
     }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
 import { GameScreenProps, PlayerData, FoodData } from '../../types';
 import { GameCanvas } from '../GameCanvas';
 import { HUD } from '../../ui/hud/HUD';
@@ -8,9 +9,10 @@ import { LoadingScreen } from './LoadingScreen';
 import { useSocket } from '../../hooks/useSocket';
 import { useGameState } from '../../hooks/useGameState';
 import { useInput } from '../../hooks/useInput';
+import { useGameContext } from '../../contexts/GameContext';
 import { Camera } from '../../game/Camera';
 import { Renderer } from '../../game/Renderer';
-import { SOCKET_EVENTS, GAME_CONFIG } from '../../common/constants';
+import { SOCKET_EVENTS, GAME_CONFIG } from '../../../../common/constants';
 import { formatTime } from '../../utils';
 
 export const GameScreen: React.FC<GameScreenProps> = ({ nickname, onGameEnd }) => {
@@ -40,6 +42,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ nickname, onGameEnd }) =
     const socket = useSocket();
     const gameState = useGameState();
     const input = useInput(canvasRef.current, cameraRef.current);
+    const { selectedServer } = useGameContext();
+    const { user } = usePrivy();
 
     // Initialize connection ONCE - only depends on nickname
     useEffect(() => {
@@ -52,7 +56,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({ nickname, onGameEnd }) =
         const handleConnected = () => {
             console.log('Connected successfully, joining game...');
             setLoading(false);
-            socket.joinGame(nickname);
+            
+            // Join appropriate server based on selection
+            if (selectedServer?.isPremium) {
+                // Join paid game - send both wallet address (for verification) and nickname (for display)
+                socket.joinPaidGame(selectedServer.id, user?.wallet?.address || '', nickname);
+            } else {
+                // Join free game
+                socket.joinGame(nickname);
+            }
+            
             gameState.setGameRunning(true);
             setGameStartTime(Date.now());
             setEliminations(0);
@@ -82,20 +95,23 @@ export const GameScreen: React.FC<GameScreenProps> = ({ nickname, onGameEnd }) =
             socket.off('connect_error');
             connectedRef.current = false;
         };
-    }, [nickname]); // Only depend on nickname - stable dependencies only
+    }, [nickname, selectedServer, user?.wallet?.address]); // Added wallet address dependency
 
     // Set up game event handlers - separate useEffect
     useEffect(() => {
         const handleGameState = (state: any) => {
             gameState.updateGameState(state);
             
-            // Set local player ID if not set
+            // Set local player ID by matching nickname (works for both free and paid servers)
             if (!gameState.gameState.localPlayerId && state.players) {
                 for (const [id, playerData] of Object.entries(state.players)) {
                     const typedPlayerData = playerData as PlayerData;
+                    // For both free and paid servers, match against the nickname
+                    // (paid servers now use the actual nickname for display)
                     if (typedPlayerData.nickname === nickname) {
                         gameState.setLocalPlayerId(id);
                         localPlayerIdRef.current = id; // Store in ref for persistence
+                        console.log('Local player ID set via nickname matching:', id);
                         break;
                     }
                 }
@@ -108,7 +124,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ nickname, onGameEnd }) =
         };
 
         const handlePlayerJoined = (data: any) => {
-            // Player joined event handled silently
+            console.log('Player joined:', data);
+            // Player joined events are handled for multiplayer awareness only
+            // Local player identification happens via nickname matching in handleGameState
         };
 
         const handlePlayerLeft = (data: any) => {

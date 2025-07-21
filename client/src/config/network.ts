@@ -11,9 +11,10 @@
 
 export type NetworkEnvironment = 'mainnet' | 'devnet';
 
-// 🚀 CHANGE THIS TO SWITCH NETWORKS
-// Set to 'devnet' for development, 'mainnet' for production
-const CURRENT_NETWORK: NetworkEnvironment = 'mainnet';
+// 🚀 NETWORK CONFIGURATION
+// Uses environment variable VITE_SOLANA_NETWORK from .env files
+// Falls back to 'devnet' for development safety
+const CURRENT_NETWORK: NetworkEnvironment = ((import.meta as any).env?.VITE_SOLANA_NETWORK as NetworkEnvironment) || 'devnet';
 
 // Helius API Configuration
 const HELIUS_API_KEY = 'b398bdd3-2e91-4c2c-919d-9fa6cb01a90e';
@@ -53,7 +54,14 @@ export const getCurrentRpcEndpoints = () => {
  * Check if we're on devnet
  */
 export const isDevnet = (): boolean => {
-  return (CURRENT_NETWORK as NetworkEnvironment) === 'devnet';
+  const isDev = (CURRENT_NETWORK as NetworkEnvironment) === 'devnet';
+  console.log(`🔧 Network Configuration:`, {
+    currentNetwork: CURRENT_NETWORK,
+    isDevnet: isDev,
+    envValue: (import.meta as any).env?.VITE_SOLANA_NETWORK,
+    fallbackUsed: !(import.meta as any).env?.VITE_SOLANA_NETWORK
+  });
+  return isDev;
 };
 
 /**

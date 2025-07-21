@@ -21,6 +21,10 @@ export function useSocket(): UseSocketReturn {
         socketManager.joinGame(nickname);
     }, []);
 
+    const joinPaidGame = useCallback((serverId: string, walletAddress: string, nickname: string) => {
+        socketManager.joinPaidGame(serverId, walletAddress, nickname);
+    }, []);
+
     const sendPlayerMove = useCallback((angle: number, isBoosting: boolean) => {
         socketManager.sendPlayerMove(angle, isBoosting);
     }, []);
@@ -73,6 +77,7 @@ export function useSocket(): UseSocketReturn {
         connect,
         disconnect,
         joinGame,
+        joinPaidGame,
         sendPlayerMove,
         on,
         off

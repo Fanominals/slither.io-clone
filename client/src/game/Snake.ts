@@ -6,7 +6,7 @@ import {
 import { 
     GAME_CONFIG,
     lerp
-} from '../common/constants';
+} from '../../../common/constants';
 
 export class ClientSnake {
     public id: string;

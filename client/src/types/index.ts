@@ -61,6 +61,32 @@ export interface PlayerMoveMessage {
     timestamp: number;
 }
 
+// Payment-related types
+export interface PaymentProgress {
+  state: keyof typeof import('../../../common/constants').PAYMENT_STATES;
+  message: string;
+  progress: number;
+}
+
+export interface ServerConfig {
+  id: string;
+  name: string;
+  description: string;
+  entryFeeUsd: number;
+  features: string[];
+  isPremium: boolean;
+}
+
+export interface GameServerInfo {
+  id: string;
+  name: string;
+  description: string;
+  entryFeeUsd: number;
+  entryFeeSol: number;
+  features: string[];
+  isPremium: boolean;
+}
+
 // React Component Props Types
 export interface GameScreenProps {
     nickname: string;
@@ -131,6 +157,7 @@ export interface UseSocketReturn {
     connect: () => void;
     disconnect: () => void;
     joinGame: (nickname: string) => void;
+    joinPaidGame: (serverId: string, walletAddress: string, nickname: string) => void;
     sendPlayerMove: (angle: number, isBoosting: boolean) => void;
     on: (event: string, handler: (...args: any[]) => void) => void;
     off: (event: string) => void;

@@ -1,6 +1,5 @@
 import type { PrivyClientConfig } from '@privy-io/react-auth';
-
-const HELIUS_API_KEY = 'b398bdd3-2e91-4c2c-919d-9fa6cb01a90e';
+import { environment } from './environment';
 
 export const privyConfig: PrivyClientConfig = {
   
@@ -19,25 +18,23 @@ export const privyConfig: PrivyClientConfig = {
   embeddedWallets: {
     createOnLogin: 'users-without-wallets',
     requireUserPasswordOnCreate: false,
-    // Disable Ethereum wallets
+    // Disable Ethereum wallets completely
     ethereum: {
       createOnLogin: 'off',
     },
-    // Enable ONLY Solana wallets
+    // Enable ONLY Solana wallets and force recreation
     solana: {
       createOnLogin: 'users-without-wallets',
     },
   },
   
-  // Configure Solana RPC endpoints to use only Helius
+
+  
+  // Configure Solana RPC endpoints to use environment variable
   solanaClusters: [
     {
-      name: 'mainnet-beta',
-      rpcUrl: `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`,
-    },
-    {
-      name: 'devnet', 
-      rpcUrl: `https://devnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`,
+      name: environment.SOLANA_NETWORK === 'devnet' ? 'devnet' : 'mainnet-beta',
+      rpcUrl: environment.SOLANA_RPC_URL,
     },
   ],
   

@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
+import { PaymentModal } from '../PaymentModal';
+import { GameServerInfo } from '../../types';
+import { useGameContext } from '../../contexts/GameContext';
 import { MenuScreenProps } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUsernameValidation } from '../../hooks/useUsernameValidation';
@@ -10,8 +14,11 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({ onStartGame }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     
     const { isAuthenticated, user, userProfile, username, hasUsername, login, logout, isLoading, setUsername } = useAuth();
+    const { user: privyUser, authenticated } = usePrivy();
+    const { setSelectedServer } = useGameContext();
     const usernameValidation = useUsernameValidation(usernameInput, username);
 
     // Set initial username input when user/username changes
@@ -25,15 +32,26 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({ onStartGame }) => {
         setSaveSuccess(false);
     }, [username]);
 
+    const handlePlayClick = () => {
+        if (!authenticated) {
+            login();
+            return;
+        }
+        setShowPaymentModal(true);
+    };
+
+    const handleJoinGame = (serverInfo: GameServerInfo) => {
+        setSelectedServer(serverInfo);
+        setShowPaymentModal(false);
+        
+        // Use the appropriate nickname for the game
+        const gameNickname = isAuthenticated ? (username || '') : nickname.trim();
+        onStartGame(gameNickname);
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
-        // If authenticated, use username; otherwise use nickname
-        const gameNickname = isAuthenticated ? username : nickname.trim();
-        
-        if (gameNickname) {
-            onStartGame(gameNickname);
-        }
+        handlePlayClick();
     };
 
     const handleUsernameInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,10 +212,22 @@ export const MenuScreen: React.FC<MenuScreenProps> = ({ onStartGame }) => {
                         disabled={!canPlay}
                         className={`play-button ${!canPlay ? 'disabled' : ''}`}
                     >
-                        Play
+                        {authenticated ? 'Play Game' : 'Connect Wallet to Play'}
                     </button>
                 </div>
+
+                {authenticated && privyUser?.wallet?.address && (
+                    <div className="wallet-info">
+                        <p>Connected: {privyUser.wallet.address.slice(0, 6)}...{privyUser.wallet.address.slice(-4)}</p>
+                    </div>
+                )}
             </div>
+
+            <PaymentModal
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                onJoinGame={handleJoinGame}
+            />
         </div>
     );
 }; 
